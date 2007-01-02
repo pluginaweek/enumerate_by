@@ -6,8 +6,10 @@ module PluginAWeek #:nodoc:
       end
       
       module MacroMethods
-        #
-        #
+        # Configuration options:
+        # * <tt>conditions</tt> - 
+        # * <tt>use_deadlines</tt> - 
+        # * <tt>on_lookup_failure</tt> - 
         def acts_as_enumerated(options = {})
           valid_keys = [
             :conditions,
@@ -33,7 +35,6 @@ module PluginAWeek #:nodoc:
         attr_accessor :enumeration_model_updates_permitted
         
         #
-        #
         def all
           @all ||= find(:all,
             :conditions => read_inheritable_attribute(:acts_enumerated_conditions),
@@ -41,7 +42,6 @@ module PluginAWeek #:nodoc:
           ).map(&:freeze).freeze
         end
         
-        #
         #
         def [](arg)
           case arg
@@ -65,18 +65,15 @@ module PluginAWeek #:nodoc:
         end
         
         #
-        #
         def lookup_id(arg)
           all_by_id[arg]
         end
         
         #
-        #
         def lookup_name(arg)
           all_by_name[arg]
         end
         
-        #
         #
         def includes?(arg)
           value = self[arg]
@@ -95,12 +92,10 @@ module PluginAWeek #:nodoc:
         
         private
         #
-        #
         def all_by_id
           @all_by_id ||= all.inject({}) {|memo, item| memo[item.id] = item; memo;}.freeze
         end
         
-        #
         #
         def all_by_name
           begin
@@ -115,17 +110,14 @@ module PluginAWeek #:nodoc:
         end
         
         #
-        #
         def enforce_none(arg)
         end
         
-        #
         #
         def enforce_strict(arg)
           raise ActiveRecord::RecordNotFound, "Couldn't find a #{self.name} identified by (#{arg.inspect})"
         end
         
-        #
         #
         def enforce_strict_literals(arg)
           raise ActiveRecord::RecordNotFound, "Couldn't find a #{self.name} identified by (#{arg.inspect})" if Fixnum === arg || Symbol === arg
