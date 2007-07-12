@@ -1,1 +1,1 @@
-require 'acts_as_enumerated'
+require 'acts_as_enumeration'

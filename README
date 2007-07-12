@@ -1,12 +1,12 @@
-= acts_as_enumerated
+= acts_as_enumeration
 
-acts_as_enumerated .
+acts_as_enumeration .
 
 == Resources
 
 Wiki
 
-* http://wiki.pluginaweek.org/Acts_as_enumerated
+* http://wiki.pluginaweek.org/Acts_as_enumeration
 
 Announcement
 
@@ -14,11 +14,11 @@ Announcement
 
 Source
 
-* http://svn.pluginaweek.org/trunk/plugins/active_record/acts/acts_as_enumerated
+* http://svn.pluginaweek.org/trunk/plugins/active_record/acts/acts_as_enumeration
 
 Development
 
-* http://dev.pluginaweek.org/browser/trunk/plugins/active_record/acts/acts_as_enumerated
+* http://dev.pluginaweek.org/browser/trunk/plugins/active_record/acts/acts_as_enumeration
 
 == Description
 
@@ -26,4 +26,4 @@ Development
 
 == References
 
-Trevor Squires
+Trevor Squires - http://svn.protocool.com/rails/plugins/enumerations_mixin
