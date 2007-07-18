@@ -10,7 +10,7 @@ module PluginAWeek #:nodoc:
           end
           
           # 
-          def belongs_to_with_enumerations(association_id, options)
+          def belongs_to_with_enumerations(association_id, options = {})
             if enumerated = options.delete(:enumerated)
               options.assert_valid_keys(
                 :class_name,
