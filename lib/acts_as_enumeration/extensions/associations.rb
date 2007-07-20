@@ -9,12 +9,14 @@ module PluginAWeek #:nodoc:
             end
           end
           
-          # 
+          # Override default accessor methods so that, for enumerations, the
+          # reader method only accesses the cache and the write method can
+          # understand assigning strings, symbols, or numbers to the association
           def belongs_to_with_enumerations(association_id, options = {})
             belongs_to_without_enumerations(association_id, options)
             reflection = reflections[association_id.to_sym]
             
-            if reflection.klass.extended_by.include?(PluginAWeek::Acts::Enumeration::ClassMethods)
+            if reflection.klass.enumeration?
               name = reflection.name
               primary_key_name = reflection.primary_key_name
               class_name = reflection.class_name

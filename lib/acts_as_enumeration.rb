@@ -1,4 +1,5 @@
 require 'acts_as_enumeration/extensions/associations'
+require 'acts_as_enumeration/extensions/base_conditions'
 
 module PluginAWeek #:nodoc:
   module Acts #:nodoc:
@@ -17,6 +18,11 @@ module PluginAWeek #:nodoc:
           
           extend PluginAWeek::Acts::Enumeration::ClassMethods
           include PluginAWeek::Acts::Enumeration::InstanceMethods
+        end
+        
+        # Is this class an enumeration?
+        def enumeration?
+          extended_by.include?(PluginAWeek::Acts::Enumeration::ClassMethods)
         end
       end
       
@@ -112,5 +118,4 @@ end
 
 ActiveRecord::Base.class_eval do
   include PluginAWeek::Acts::Enumeration
-  extend PluginAWeek::Acts::Enumeration::Extensions::Associations
 end
