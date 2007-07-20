@@ -1,4 +1,3 @@
 class Car < ActiveRecord::Base
-  belongs_to  :color,
-                :enumerated => true
+  belongs_to  :color
 end

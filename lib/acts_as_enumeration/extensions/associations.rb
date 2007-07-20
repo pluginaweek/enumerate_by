@@ -11,15 +11,10 @@ module PluginAWeek #:nodoc:
           
           # 
           def belongs_to_with_enumerations(association_id, options = {})
-            if enumerated = options.delete(:enumerated)
-              options.assert_valid_keys(
-                :class_name,
-                :foreign_key
-              )
-              
-              belongs_to_without_enumerations(association_id, options)
-              reflection = reflections[association_id.to_sym]
-              
+            belongs_to_without_enumerations(association_id, options)
+            reflection = reflections[association_id.to_sym]
+            
+            if reflection.klass.extended_by.include?(PluginAWeek::Acts::Enumeration::ClassMethods)
               name = reflection.name
               primary_key_name = reflection.primary_key_name
               class_name = reflection.class_name
@@ -34,12 +29,14 @@ module PluginAWeek #:nodoc:
                 end
                 alias_method_chain :#{name}=, :enumerations
               end_eval
-            else
-              belongs_to_without_enumerations(association_id, options)
             end
           end
         end
       end
     end
   end
+end
+
+ActiveRecord::Base.class_eval do
+  extend PluginAWeek::Acts::Enumeration::Extensions::Associations
 end
