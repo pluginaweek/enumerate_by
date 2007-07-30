@@ -16,7 +16,7 @@ module PluginAWeek #:nodoc:
             belongs_to_without_enumerations(association_id, options)
             reflection = reflections[association_id.to_sym]
             
-            if reflection.klass.enumeration?
+            if !reflection.options[:polymorphic] && reflection.klass.enumeration?
               name = reflection.name
               primary_key_name = reflection.primary_key_name
               class_name = reflection.class_name
