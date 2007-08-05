@@ -1,8 +1,13 @@
 = acts_as_enumeration
 
-acts_as_enumeration .
+acts_as_enumeration adds support for declaring an ActiveRecord class as an
+enumeration.
 
 == Resources
+
+API
+
+* http://api.pluginaweek.org/acts_as_enumeration
 
 Wiki
 
@@ -22,7 +27,23 @@ Development
 
 == Description
 
+Support for enumerations is dependent on the type of database you use.  For
+example, MySQL has native support for the enum data type.  However, there is
+no native Rails support for defining enumerations and the associations between
+it and other models in the application.
 
+acts_as_enumeration adds support for enumerations in Rails by providing methods
+for interacting with records in a table as if they were values in an
+enumeration.
+
+See the API for usage examples.
+
+== Testing
+
+This plugin requires that the plugin_test_helper gem be installed in order to
+run the unit tests.  To install this gem:
+
+  gem install plugin_test_helper
 
 == References
 

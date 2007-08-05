@@ -3,18 +3,50 @@ require 'acts_as_enumeration/extensions/base_conditions'
 
 module PluginAWeek #:nodoc:
   module Acts #:nodoc:
-    module Enumeration #:nodoc:
+    # An enumeration defines a finite set of identifiers which (often) have no
+    # numerical order.  This plugin provides a general technique for using
+    # ActiveRecord classes to defined enumerations.
+    # 
+    # == Defining enumerations
+    # 
+    # To define an ActiveRecord class as an enumeration:
+    # 
+    #   class Color < ActiveRecord::Base
+    #     acts_as_enumeration
+    #   end
+    # 
+    # This will create the class/instance methods for accessing the enumeration
+    # identifiers.
+    # 
+    # == Accessing enumeration identifiers
+    # 
+    # The actual records for an enumeration identifier can be accessed by id or
+    # name:
+    # 
+    #   >> Color[:red]
+    #   => #<Color:0x480c808 @attributes={"name"=>"red", "id"=>"1"}>
+    #   >> Color[1]
+    #   => #<Color:0x480c808 @attributes={"name"=>"red", "id"=>"1"}>
+    # 
+    # == Caching
+    # 
+    # On first access, all records in the enumeration are cached so that any
+    # further accesses do not hit the database.  When new models are created or
+    # existing models are saved, the cache is reset.
+    # 
+    # To manually reset the cached, you can call #reset_cache.
+    module Enumeration
       def self.included(base) #:nodoc:
         base.extend(MacroMethods)
       end
       
       module MacroMethods
-        # 
+        # Indicates that this class is a representative of an enumeration.
         def acts_as_enumeration
           validates_uniqueness_of :name
           
-          before_save :reset_cache
-          before_destroy :reset_cache
+          before_save Proc.new {|model| model.class.reset_cache}
+          before_destroy Proc.new {|model| model.class.reset_cache}
           
           extend PluginAWeek::Acts::Enumeration::ClassMethods
           include PluginAWeek::Acts::Enumeration::InstanceMethods

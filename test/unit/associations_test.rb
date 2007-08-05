@@ -12,17 +12,26 @@ class AssociationsTest < Test::Unit::TestCase
     assert_same Color[:silver], cars(:nissan_altima_coupe).color
   end
   
-  def test_should_infer_enumeration_from_association_value
+  def test_should_infer_enumeration_from_symbolized_name
     car = cars(:ford_mustang)
     car.color = :silver
     assert_equal colors(:silver), car.color
-    
+  end
+  
+  def test_should_infer_enumeration_from_stringified_name
+    car = cars(:ford_mustang)
     car.color = 'silver'
     assert_equal colors(:silver), car.color
-    
+  end
+  
+  def test_should_infer_enumeration_from_id
+    car = cars(:ford_mustang)
     car.color = 2
     assert_equal colors(:silver), car.color
-    
+  end
+  
+  def test_should_infer_enumeration_from_model
+    car = cars(:ford_mustang)
     car.color = colors(:silver)
     assert_equal colors(:silver), car.color
   end
