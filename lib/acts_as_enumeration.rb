@@ -34,7 +34,7 @@ module PluginAWeek #:nodoc:
     # further accesses do not hit the database.  When new models are created or
     # existing models are saved, the cache is reset.
     # 
-    # To manually reset the cached, you can call #reset_cache.
+    # To manually reset the cached, you can call +reset_cache+.
     module Enumeration
       def self.included(base) #:nodoc:
         base.extend(MacroMethods)
@@ -67,15 +67,15 @@ module PluginAWeek #:nodoc:
         end
         
         # Looks up the corresponding record.  You can lookup the following types:
-        # * symbol - The symbol name of the enum value
-        # * string - The name of the enum value
-        # * fixnum - The id of the record
+        # * +symbol+ - The symbol name of the enum value
+        # * +string+ - The name of the enum value
+        # * +fixnum+ - The id of the record
         # 
         # Any other type will cause a TypeError exception to be raised.  If a
         # record cannot be found, then a RecordNotFound exception will be raised.
         # 
-        # If you do not want to worry about exceptions, then use find_by_id or
-        # find_by_name.
+        # If you do not want to worry about exceptions, then use +find_by_id+ or
+        # +find_by_name+.
         def [](id)
           find_enum(id) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} for #{id}")
         end
