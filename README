@@ -5,25 +5,25 @@ enumeration.
 
 == Resources
 
-API
+Announcement
 
-* http://api.pluginaweek.org/acts_as_enumeration
+* http://www.pluginaweek.org
 
 Wiki
 
 * http://wiki.pluginaweek.org/Acts_as_enumeration
 
-Announcement
+API
 
-* http://www.pluginaweek.org
-
-Source
-
-* http://svn.pluginaweek.org/trunk/plugins/active_record/acts/acts_as_enumeration
+* http://api.pluginaweek.org/acts_as_enumeration
 
 Development
 
 * http://dev.pluginaweek.org/browser/trunk/plugins/active_record/acts/acts_as_enumeration
+
+Source
+
+* http://svn.pluginaweek.org/trunk/plugins/active_record/acts/acts_as_enumeration
 
 == Description
 
