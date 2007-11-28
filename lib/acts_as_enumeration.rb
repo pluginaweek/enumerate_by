@@ -27,7 +27,7 @@ module PluginAWeek #:nodoc:
     #   class Color < ActiveRecord::Base
     #     acts_as_enumeration :virtual => true
     #     
-    #     def self.enumerations
+    #     def self.identifiers
     #       [
     #         Color.new(:id => 1, :name => 'red'),
     #         Color.new(:id => 2, :name => 'blue')
@@ -197,7 +197,7 @@ module PluginAWeek #:nodoc:
         def find(*args)
           case args.first
           when :all
-            enumerations
+            identifiers
           when :first
             all.first
           else
@@ -205,9 +205,9 @@ module PluginAWeek #:nodoc:
           end
         end
         
-        # Returns a list of the enumerations being defined.  This should include
+        # Returns a list of the identifiers being defined.  This should include
         # an a collection of instances of this model.
-        def enumerations
+        def identifiers
           []
         end
       end
