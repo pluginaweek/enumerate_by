@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for virtual enumerations that don't need to be backed by the database
+
 *0.0.2* (September 26th, 2007)
 
 * Move test fixtures out of the test application root directory

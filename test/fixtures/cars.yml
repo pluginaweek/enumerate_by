@@ -4,6 +4,7 @@ nissan_altima_coupe:
   model: Altima Coupe
   year: 2005
   color_id: 2
+  rating_id: 1
   
 ford_mustang:
   id: 2
@@ -11,6 +12,7 @@ ford_mustang:
   model: Mustang
   year: 2007
   color_id: 1
+  rating_id: 2
   
 chevrolet_cobalt:
   id: 3
@@ -18,3 +20,4 @@ chevrolet_cobalt:
   model: Cobalt
   year: 2006
   color_id: 4
+  rating_id: 3
