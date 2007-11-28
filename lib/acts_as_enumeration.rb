@@ -18,6 +18,27 @@ module PluginAWeek #:nodoc:
     # This will create the class/instance methods for accessing the enumeration
     # identifiers.
     # 
+    # == Virtual enumerations
+    # 
+    # Virtual enumerations allow you to define an ActiveRecord class as an
+    # enumeration without a table in the database backing that class.  For
+    # example,
+    # 
+    #   class Color < ActiveRecord::Base
+    #     acts_as_enumeration :virtual => true
+    #     
+    #     def self.enumerations
+    #       [
+    #         Color.new(:id => 1, :name => 'red'),
+    #         Color.new(:id => 2, :name => 'blue')
+    #         Color.new(:id => 3, :name => 'green')
+    #       ]
+    #     end
+    #   end
+    # 
+    # There are certain restrictions on what types of queries can be run on this
+    # type of enumeration, but it should be sufficient.
+    # 
     # == Accessing enumeration identifiers
     # 
     # The actual records for an enumeration identifier can be accessed by id or
@@ -42,7 +63,9 @@ module PluginAWeek #:nodoc:
       
       module MacroMethods
         # Indicates that this class is a representative of an enumeration.
-        def acts_as_enumeration
+        def acts_as_enumeration(options = {})
+          options.assert_valid_keys(:virtual)
+          
           validates_uniqueness_of :name
           
           before_save Proc.new {|model| model.class.reset_cache}
@@ -50,6 +73,11 @@ module PluginAWeek #:nodoc:
           
           extend PluginAWeek::Acts::Enumeration::ClassMethods
           include PluginAWeek::Acts::Enumeration::InstanceMethods
+          
+          if options[:virtual]
+            extend PluginAWeek::Acts::Enumeration::VirtualClassMethods
+            include PluginAWeek::Acts::Enumeration::VirtualInstanceMethods
+          end
         end
         
         # Is this class an enumeration?
@@ -142,6 +170,52 @@ module PluginAWeek #:nodoc:
         # Returns the symbol value of the name
         def to_sym
           self.name.to_sym
+        end
+      end
+      
+      module VirtualClassMethods
+        def self.extended(base) #:nodoc:
+          base.class_eval do
+            column :id, :integer
+            column :name, :string
+            
+            attr_accessor :id, :name
+          end
+        end
+        
+        # A list of all columns in this model
+        def columns
+          @columns ||= []
+        end
+        
+        # Defines a new column in the model
+        def column(name, sql_type = nil, default = nil, null = true)
+          columns << ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)
+        end
+        
+        # Attempts to find a specific enumeration.  This only 
+        def find(*args)
+          case args.first
+          when :all
+            enumerations
+          when :first
+            all.first
+          else
+            find_by_id(args.first)
+          end
+        end
+        
+        # Returns a list of the enumerations being defined.  This should include
+        # an a collection of instances of this model.
+        def enumerations
+          []
+        end
+      end
+      
+      module VirtualInstanceMethods
+        def initialize(options = {}) #:nodoc:
+          options.symbolize_keys!
+          @id, @name = options[:id], options[:name]
         end
       end
     end
