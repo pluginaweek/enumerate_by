@@ -154,6 +154,16 @@ class ActsAsEnumerationTest < Test::Unit::TestCase
     assert_equal :red, colors(:red).to_sym
   end
   
+  def test_to_s_should_return_stringified_name
+    assert_equal 'red', colors(:red).to_s
+  end
+  
+  def test_should_respond_to_identifier_queries
+    assert colors(:red).red?
+    assert !colors(:red).blue?
+    assert !colors(:red).green?
+  end
+  
   def test_should_handle_case_equality_for_symbolized_name
     assert colors(:red) === :red
   end

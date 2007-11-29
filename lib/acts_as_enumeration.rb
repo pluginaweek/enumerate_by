@@ -27,13 +27,9 @@ module PluginAWeek #:nodoc:
     #   class Color < ActiveRecord::Base
     #     acts_as_enumeration :virtual => true
     #     
-    #     def self.identifiers
-    #       [
-    #         Color.new(:id => 1, :name => 'red'),
-    #         Color.new(:id => 2, :name => 'blue')
-    #         Color.new(:id => 3, :name => 'green')
-    #       ]
-    #     end
+    #     create :id => 1, :name => 'red'
+    #     create :id => 2, :name => 'blue'
+    #     create :id => 3, :name => 'green'
     #   end
     # 
     # There are certain restrictions on what types of queries can be run on this
@@ -66,8 +62,6 @@ module PluginAWeek #:nodoc:
         def acts_as_enumeration(options = {})
           options.assert_valid_keys(:virtual)
           
-          validates_uniqueness_of :name
-          
           before_save Proc.new {|model| model.class.reset_cache}
           before_destroy Proc.new {|model| model.class.reset_cache}
           
@@ -77,6 +71,8 @@ module PluginAWeek #:nodoc:
           if options[:virtual]
             extend PluginAWeek::Acts::Enumeration::VirtualClassMethods
             include PluginAWeek::Acts::Enumeration::VirtualInstanceMethods
+          else
+            validates_uniqueness_of :name
           end
         end
         
@@ -150,6 +146,20 @@ module PluginAWeek #:nodoc:
       end
       
       module InstanceMethods
+        # Check whether the method is the name of an identifier in this
+        # enumeration
+        def method_missing(method_id, *arguments)
+          if match = /^(\w*)\?$/.match(method_id.to_s)
+            if identifier = self.class.find_by_name(match[1])
+              self == identifier
+            else
+              super
+            end
+          else
+            super
+          end
+        end
+        
         # Whether or not this enumeration is equal to the given value
         def ===(arg)
           case arg
@@ -171,6 +181,11 @@ module PluginAWeek #:nodoc:
         def to_sym
           self.name.to_sym
         end
+        
+        # Returns the value of the name
+        def to_s
+          self.name
+        end
       end
       
       module VirtualClassMethods
@@ -179,7 +194,8 @@ module PluginAWeek #:nodoc:
             column :id, :integer
             column :name, :string
             
-            attr_accessor :id, :name
+            cattr_accessor :identifiers
+            self.identifiers = []
           end
         end
         
@@ -204,18 +220,22 @@ module PluginAWeek #:nodoc:
             find_by_id(args.first)
           end
         end
-        
-        # Returns a list of the identifiers being defined.  This should include
-        # an a collection of instances of this model.
-        def identifiers
-          []
-        end
       end
       
       module VirtualInstanceMethods
-        def initialize(options = {}) #:nodoc:
-          options.symbolize_keys!
-          @id, @name = options[:id], options[:name]
+        def create #:nodoc:
+          self.class.identifiers << self
+          @new_record = false
+          self.id
+        end
+        
+        def update #:nodoc
+          raise NotImplementedError, 'Updates are not allowed for enumerations'
+        end
+        
+        # Allow id to be assigned via ActiveRecord::Base#attributes=
+        def attributes_protected_by_default #:nodoc:
+          []
         end
       end
     end
