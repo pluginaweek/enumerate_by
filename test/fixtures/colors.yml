@@ -17,3 +17,7 @@ blue:
 black:
   id: 5
   name: black
+  
+hot_red:
+  id: 6
+  name: Hot Red!

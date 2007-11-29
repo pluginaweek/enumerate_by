@@ -122,7 +122,17 @@ module PluginAWeek #:nodoc:
         
         # Finds the enumerated value with the given name
         def find_by_name(name)
-          @all_by_name ||= all.inject({}) {|memo, item| memo[item.name] = item; memo;}.freeze
+          @all_by_name ||= all.inject({}) do |memo, item|
+            memo[item.name] = item
+            
+            # Add the item's safe name in case it contains characters that aren't
+            # easily used in symbols
+            safe_name = item.name.gsub(/[^A-Za-z0-9-]/, '').underscore
+            memo[safe_name] = item if safe_name != item.name
+            
+            memo
+          end.freeze
+          
           @all_by_name[name.is_a?(Symbol) ? name.id2name : name]
         end
         

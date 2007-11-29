@@ -17,7 +17,7 @@ class ActsAsEnumerationTest < Test::Unit::TestCase
   end
   
   def test_all_should_find_all_models
-    assert_equal 5, Color.all.size
+    assert_equal 6, Color.all.size
     assert (Color.find(:all) - Color.all).empty?
   end
   
@@ -182,6 +182,10 @@ class ActsAsEnumerationTest < Test::Unit::TestCase
   
   def test_enumerated_value_should_not_be_in_invalid_values
     assert !colors(:red).in?('blue', :green)
+  end
+  
+  def test_should_use_allow_lookup_using_safe_name
+    assert_equal colors(:hot_red), Color[:hot_red]
   end
   
   def teardown

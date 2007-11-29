@@ -1,5 +1,7 @@
 *SVN*
 
+* Add support for converting unsafe identifier names (like "red!") to their safe symbol equivalent ("red")
+
 * Add ability to use truth accessors for determing the identifier name
 
 * Add support for virtual enumerations that don't need to be backed by the database
