@@ -204,19 +204,14 @@ module PluginAWeek #:nodoc:
             column :id, :integer
             column :name, :string
             
-            cattr_accessor :identifiers
-            self.identifiers = []
+            class_inheritable_array :identifiers
+            class_inheritable_array :columns
           end
-        end
-        
-        # A list of all columns in this model
-        def columns
-          @columns ||= []
         end
         
         # Defines a new column in the model
         def column(name, sql_type = nil, default = nil, null = true)
-          columns << ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)
+          write_inheritable_array(:columns, [ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)])
         end
         
         # Attempts to find a specific enumeration.  This only 
@@ -234,7 +229,7 @@ module PluginAWeek #:nodoc:
       
       module VirtualInstanceMethods
         def create #:nodoc:
-          self.class.identifiers << self
+          self.class.write_inheritable_array(:identifiers, [self])
           @new_record = false
           self.id
         end
