@@ -27,7 +27,7 @@ module PluginAWeek #:nodoc:
                 end
                 
                 def #{name}_with_enumerations=(new_value)
-                  self.#{name}_without_enumerations = #{class_name} === new_value ? new_value : #{class_name}[new_value]
+                  self.#{name}_without_enumerations = #{class_name} === new_value ? new_value : #{class_name}.find_enum(new_value)
                 end
                 alias_method_chain :#{name}=, :enumerations
               end_eval

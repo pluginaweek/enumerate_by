@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix problems with setting enumeration attributes to nil
+
 * Add inheritance support for virtual enumerations
 
 * Add support for converting unsafe identifier names (like "red!") to their safe symbol equivalent ("red")

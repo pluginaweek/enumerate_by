@@ -136,23 +136,24 @@ module PluginAWeek #:nodoc:
           @all_by_name[name.is_a?(Symbol) ? name.id2name : name]
         end
         
-        private
-          def find_enum(id)
-            case id
-              when Symbol
-                value = find_by_name(id.id2name)
-              when String
-                value = find_by_name(id)
-              when Fixnum
-                value = find_by_id(id)
-              when nil
-                value = nil
-              else
-                raise TypeError, "#{self.name}[]: id should be a String, Symbol or Fixnum but got a: #{id.class.name}"
-            end
-            
-            value
+        # Finds the enumerated value indicated by id or returns nil if nothing
+        # was found
+        def find_enum(id)
+          case id
+            when Symbol
+              value = find_by_name(id.id2name)
+            when String
+              value = find_by_name(id)
+            when Fixnum
+              value = find_by_id(id)
+            when nil
+              value = nil
+            else
+              raise TypeError, "#{self.name}[]: id should be a String, Symbol or Fixnum but got a: #{id.class.name}"
           end
+          
+          value
+        end
       end
       
       module InstanceMethods
