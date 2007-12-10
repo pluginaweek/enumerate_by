@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix enumerations failing when being reloaded
+
 * Fix problems with setting enumeration attributes to nil
 
 * Add inheritance support for virtual enumerations

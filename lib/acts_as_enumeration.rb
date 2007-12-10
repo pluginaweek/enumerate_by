@@ -239,6 +239,12 @@ module PluginAWeek #:nodoc:
           raise NotImplementedError, 'Updates are not allowed for enumerations'
         end
         
+        def reload(options = nil) #:nodoc:
+          clear_aggregation_cache
+          clear_association_cache
+          self
+        end
+        
         # Allow id to be assigned via ActiveRecord::Base#attributes=
         def attributes_protected_by_default #:nodoc:
           []
