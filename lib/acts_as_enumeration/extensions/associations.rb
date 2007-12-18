@@ -20,13 +20,13 @@ module PluginAWeek #:nodoc:
         # will auto-generate the +find+ and +count+ class methods for each
         # Color identifier in the Car class like so:
         # 
-        #   red_cars = Car.find_red(:all)
-        #   blue_car = Car.find_blue(:first)
-        #   green_cars = Car.find_green
+        #   red_cars = Car.red.find(:all)
+        #   blue_car = Car.blue.find(:first)
+        #   green_cars = Car.green.find(:all)
         #   
-        #   number_of_red_cars = Car.red_count
-        #   number_of_blue_cars = Car.blue_count
-        #   number_of_green_cars = Car.green_count(:limit => 10)
+        #   number_of_red_cars = Car.red.count
+        #   number_of_blue_cars = Car.blue.count
+        #   number_of_green_cars = Car.green.count(:limit => 10)
         module Associations
           def self.extended(base) #:nodoc:
             class << base
