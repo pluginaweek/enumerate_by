@@ -1,3 +1,4 @@
+require 'has_finder'
 require 'acts_as_enumeration/extensions/associations'
 require 'acts_as_enumeration/extensions/base_conditions'
 
@@ -5,11 +6,11 @@ module PluginAWeek #:nodoc:
   module Acts #:nodoc:
     # An enumeration defines a finite set of identifiers which (often) have no
     # numerical order.  This plugin provides a general technique for using
-    # ActiveRecord classes to defined enumerations.
+    # ActiveRecord classes to define enumerations.
     # 
     # == Defining enumerations
     # 
-    # To define an ActiveRecord class as an enumeration:
+    # To define a model as an enumeration:
     # 
     #   class Color < ActiveRecord::Base
     #     acts_as_enumeration
@@ -18,14 +19,14 @@ module PluginAWeek #:nodoc:
     # This will create the class/instance methods for accessing the enumeration
     # identifiers.
     # 
-    # == Virtual enumerations
+    # == Defining identifiers
     # 
-    # Virtual enumerations allow you to define an ActiveRecord class as an
-    # enumeration without a table in the database backing that class.  For
-    # example,
+    # Identifiers represent the individual values within the enumeration.
+    # Enumerations +do not+ have a database backing.  Instead, the records are
+    # all created and maintained within the enumeration class.  For example,
     # 
     #   class Color < ActiveRecord::Base
-    #     acts_as_enumeration :virtual => true
+    #     acts_as_enumeration
     #     
     #     create :id => 1, :name => 'red'
     #     create :id => 2, :name => 'blue'
@@ -44,14 +45,6 @@ module PluginAWeek #:nodoc:
     #   => #<Color:0x480c808 @attributes={"name"=>"red", "id"=>"1"}>
     #   >> Color[1]
     #   => #<Color:0x480c808 @attributes={"name"=>"red", "id"=>"1"}>
-    # 
-    # == Caching
-    # 
-    # On first access, all records in the enumeration are cached so that any
-    # further accesses do not hit the database.  When new models are created or
-    # existing models are saved, the cache is reset.
-    # 
-    # To manually reset the cached, you can call +reset_cache+.
     module Enumeration
       def self.included(base) #:nodoc:
         base.extend(MacroMethods)
@@ -59,35 +52,62 @@ module PluginAWeek #:nodoc:
       
       module MacroMethods
         # Indicates that this class is a representative of an enumeration.
-        def acts_as_enumeration(options = {})
-          options.assert_valid_keys(:virtual)
-          
-          before_save Proc.new {|model| model.class.reset_cache}
-          before_destroy Proc.new {|model| model.class.reset_cache}
+        def acts_as_enumeration
+          after_save :reset_cache
+          after_destroy :reset_cache
           
           extend PluginAWeek::Acts::Enumeration::ClassMethods
           include PluginAWeek::Acts::Enumeration::InstanceMethods
-          
-          if options[:virtual]
-            extend PluginAWeek::Acts::Enumeration::VirtualClassMethods
-            include PluginAWeek::Acts::Enumeration::VirtualInstanceMethods
-          else
-            validates_uniqueness_of :name
-          end
         end
         
         # Is this class an enumeration?
         def enumeration?
-          extended_by.include?(PluginAWeek::Acts::Enumeration::ClassMethods)
+          false
         end
       end
       
       module ClassMethods
+        def self.extended(base) #:nodoc:
+          base.class_eval do
+            column :id, :integer
+            column :name, :string
+            
+            class_inheritable_array :columns
+            class_inheritable_array :identifiers
+            
+            validates_presence_of :name
+          end
+        end
+        
+        # Defines a new column in the model
+        def column(name, sql_type = nil, default = nil, null = true)
+          write_inheritable_array(:columns, [ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)])
+        end
+        
         # Finds all of the values in this enumeration.  The values will be cached
         # until the cache is reset either manually or automatically when the
-        # model chanages
-        def all
-          @all ||= find(:all).map(&:freeze).freeze
+        # model chanages.
+        def find_every(options)
+          @all ||= (identifiers || []).dup.freeze
+        end
+        
+        # Finds the identifier with the given id
+        def find_one(id, options)
+          if result = find_by_id(id)
+            result
+          else
+            raise ActiveRecord::RecordNotFound, "Couldn't find #{name} with ID=#{id}"
+          end
+        end
+        
+        # Finds the identifiers with the given ids
+        def find_some(ids, options)
+          result = ids.map {|id| find_by_id(id)}.compact
+          if result.size == ids.size
+            result
+          else
+            raise ActiveRecord::RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids.join(',')})"
+          end
         end
         
         # Looks up the corresponding record.  You can lookup the following types:
@@ -101,62 +121,99 @@ module PluginAWeek #:nodoc:
         # If you do not want to worry about exceptions, then use +find_by_id+ or
         # +find_by_name+.
         def [](id)
-          find_enum(id) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} for #{id}")
+          find_by_any(id) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with id #{id.inspect}")
         end
         
         # Determines whether this enumeration includes the given id
         def includes?(id)
-          !find_enum(id).nil?
-        end
-        
-        # Resets the colletion of values in the enumeration
-        def reset_cache
-          @all = @all_by_name = @all_by_id = nil
+          !find_by_any(id).nil?
         end
         
         # Finds the enumerated value with the given id
         def find_by_id(id)
-          @all_by_id ||= all.inject({}) {|memo, item| memo[item.id] = item; memo;}.freeze
+          @all_by_id ||= find(:all).inject({}) {|items, item| items[item.id] = item; items;}
           @all_by_id[id]
         end
         
         # Finds the enumerated value with the given name
         def find_by_name(name)
-          @all_by_name ||= all.inject({}) do |memo, item|
-            memo[item.name] = item
+          @all_by_name ||= find(:all).inject({}) do |items, item|
+            items[item.name] = item
             
             # Add the item's safe name in case it contains characters that aren't
             # easily used in symbols
             safe_name = item.name.gsub(/[^A-Za-z0-9-]/, '').underscore
-            memo[safe_name] = item if safe_name != item.name
+            items[safe_name] = item if safe_name != item.name
             
-            memo
-          end.freeze
+            items
+          end
           
           @all_by_name[name.is_a?(Symbol) ? name.id2name : name]
         end
         
         # Finds the enumerated value indicated by id or returns nil if nothing
         # was found
-        def find_enum(id)
+        def find_by_any(id)
           case id
-            when Symbol
-              value = find_by_name(id.id2name)
-            when String
-              value = find_by_name(id)
-            when Fixnum
-              value = find_by_id(id)
-            when nil
-              value = nil
-            else
-              raise TypeError, "#{self.name}[]: id should be a String, Symbol or Fixnum but got a: #{id.class.name}"
+          when Symbol
+            find_by_name(id.id2name)
+          when String
+            find_by_name(id)
+          when Fixnum
+            find_by_id(id)
+          when nil
+            nil
+          else
+            raise TypeError, "#{name}: id should be a String, Symbol or Fixnum but got a: #{id.class.name}"
           end
-          
-          value
+        end
+        
+        # Counts the number of enumerated values defined
+        def count(*args)
+          find(:all).size
+        end
+        
+        # Is this class an enumeration?
+        def enumeration?
+          true
+        end
+        
+        # Resets the colletion of values in the enumeration
+        def reset_cache
+          @all = @all_by_name = @all_by_id = nil
         end
       end
       
       module InstanceMethods
+        def create_without_callbacks #:nodoc:
+          self.class.write_inheritable_array(:identifiers, [self])
+          @new_record = false
+          readonly!
+          self.id
+        end
+        
+        def destroy_without_callbacks #:nodoc:
+          self.class.identifiers.delete(self)
+          freeze
+        end
+        
+        def validate #:nodoc:
+          if name && existing = self.class.find_by_name(name)
+            errors.add :name, 'has already been taken' if existing != self
+          end
+        end
+        
+        def reload(options = nil) #:nodoc:
+          clear_aggregation_cache
+          clear_association_cache
+          self
+        end
+        
+        # Allow id to be assigned via ActiveRecord::Base#attributes=
+        def attributes_protected_by_default #:nodoc:
+          []
+        end
+        
         # Check whether the method is the name of an identifier in this
         # enumeration
         def method_missing(method_id, *arguments)
@@ -174,11 +231,11 @@ module PluginAWeek #:nodoc:
         # Whether or not this enumeration is equal to the given value
         def ===(arg)
           case arg
-            when Symbol, String, Fixnum, nil
-              return self == self.class[arg]
-            when Array
-              return in?(*arg)
-            end
+          when Symbol, String, Fixnum, nil
+            return self == self.class[arg]
+          when Array
+            return in?(*arg)
+          end
           
           super
         end
@@ -188,67 +245,20 @@ module PluginAWeek #:nodoc:
           list.any? {|item| self === item}
         end
         
-        # Returns the symbol value of the name
+        # Returns the symbolic value of the name
         def to_sym
-          self.name.to_sym
+          name.to_sym
         end
         
         # Returns the value of the name
         def to_s
-          self.name
+          name
         end
-      end
-      
-      module VirtualClassMethods
-        def self.extended(base) #:nodoc:
-          base.class_eval do
-            column :id, :integer
-            column :name, :string
-            
-            class_inheritable_array :identifiers
-            class_inheritable_array :columns
+        
+        private
+          def reset_cache
+            self.class.reset_cache
           end
-        end
-        
-        # Defines a new column in the model
-        def column(name, sql_type = nil, default = nil, null = true)
-          write_inheritable_array(:columns, [ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)])
-        end
-        
-        # Attempts to find a specific enumeration.  This only 
-        def find(*args)
-          case args.first
-          when :all
-            identifiers
-          when :first
-            all.first
-          else
-            find_by_id(args.first)
-          end
-        end
-      end
-      
-      module VirtualInstanceMethods
-        def create #:nodoc:
-          self.class.write_inheritable_array(:identifiers, [self])
-          @new_record = false
-          self.id
-        end
-        
-        def update #:nodoc
-          raise NotImplementedError, 'Updates are not allowed for enumerations'
-        end
-        
-        def reload(options = nil) #:nodoc:
-          clear_aggregation_cache
-          clear_association_cache
-          self
-        end
-        
-        # Allow id to be assigned via ActiveRecord::Base#attributes=
-        def attributes_protected_by_default #:nodoc:
-          []
-        end
       end
     end
   end

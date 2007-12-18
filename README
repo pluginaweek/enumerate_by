@@ -43,6 +43,11 @@ See the API for usage examples.
 Before you can run any tests, the following gem must be installed:
 * plugin_test_helper[http://wiki.pluginaweek.org/Plugin_test_helper]
 
+== Dependencies
+
+This plugin depends on the presence of the following plugins:
+* has_finder[http://pivotalrb.rubyforge.org/svn/has_finder/trunk/has_finder]
+
 == References
 
 Trevor Squires - enumerations_mixin[http://svn.protocool.com/rails/plugins/enumerations_mixin]

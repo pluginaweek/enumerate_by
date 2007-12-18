@@ -1,5 +1,11 @@
 *SVN*
 
+* Add support for Rails 2.0
+
+* Use has_finder to auto-generate finders for each enumeration value after defining a belongs_to association
+
+* Removed support for database-backed enumerations in favor of always using virtual enumerations
+
 * Fix enumerations failing when being reloaded
 
 * Fix problems with setting enumeration attributes to nil
