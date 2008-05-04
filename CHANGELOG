@@ -1,5 +1,14 @@
 *SVN*
 
+*0.1.0* (May 5th, 2008)
+
+* Add support for overriding the unique attribute that defines an enumeration e.g.
+
+  acts_as_enumeration :title
+  acts_as_enumeration :controller, :action
+
+* Add support for using enumerations in has_many/has_one associations
+
 * Add support for Rails 2.0
 
 * Use has_finder to auto-generate finders for each enumeration value after defining a belongs_to association

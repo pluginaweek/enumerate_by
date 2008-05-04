@@ -1,8 +1,9 @@
 class CreateCars < ActiveRecord::Migration
   def self.up
     create_table :cars do |t|
-      t.column :name, :string, :null => false
-      t.column :color_id, :integer, :null => false
+      t.string :name, :null => false
+      t.integer :color_id, :null => false
+      t.integer :manufacturer_id
     end
   end
   
