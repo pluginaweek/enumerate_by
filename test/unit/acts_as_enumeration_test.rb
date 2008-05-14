@@ -90,7 +90,7 @@ class EnumerationWithExistingRecordsTest < Test::Unit::TestCase
   end
   
   def test_should_ignore_finder_options
-    assert_equal @red, Color.find(1, :limit => 10, :conditions => {:name => 'blue'})
+    assert_equal @red, Color.find(:first, :conditions => {:name => 'blue'})
   end
   
   def test_should_be_able_to_find_by_id
@@ -456,7 +456,7 @@ class EnumerationWithMultipleAttributesTest < Test::Unit::TestCase
   end
   
   def test_should_allow_finding_by_action_with_nil
-    users = create_access_path(:controller => 'users', :action => nil)
+    users = create_access_path(:id => 2, :controller => 'users', :action => nil)
     assert_equal users, AccessPath.find_by_action(nil)
   end
   
@@ -469,8 +469,8 @@ class EnumerationWithMultipleAttributesTest < Test::Unit::TestCase
   end
   
   def test_should_find_index_model_with_missing_attribute
-    users = create_access_path(:controller => 'users', :action => nil)
-    assert_equal users, AccessPath['users']
+    users = create_access_path(:id => 2, :controller => 'users', :action => nil)
+    assert_equal @users_index, AccessPath['users']
   end
   
   def test_should_allow_finding_by_any_with_symbol
@@ -482,8 +482,8 @@ class EnumerationWithMultipleAttributesTest < Test::Unit::TestCase
   end
   
   def test_should_allow_finding_by_any_with_string_and_missing_attribute
-    users = create_access_path(:controller => 'users', :action => nil)
-    assert_equal users, AccessPath.find_by_any('users')
+    users = create_access_path(:id => 2, :controller => 'users', :action => nil)
+    assert_equal @users_index, AccessPath.find_by_any('users')
   end
   
   def test_should_not_respond_to_identifier_queries
