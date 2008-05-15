@@ -1,5 +1,7 @@
 *SVN*
 
+* Fix automatically clearing association cache when it shouldn't be
+
 *0.1.0* (May 5th, 2008)
 
 * Add support for overriding the unique attribute that defines an enumeration e.g.

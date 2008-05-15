@@ -32,13 +32,13 @@ module PluginAWeek #:nodoc:
         
         # Adds support for has_many and enumerations
         def has_many_with_enumerations(association_id, options = {}, &extension)
-          has_many_without_enumerations(association_id, options)
+          has_many_without_enumerations(association_id, options, &extension)
           
           # Override accessor if class is already defined
           reflection = reflections[association_id.to_sym]
           if Object.const_defined?(reflection.class_name) && reflection.klass.enumeration?
             has_many_enumeration_accessor_methods(reflection)
-          else
+          elsif enumeration?
             enumeration_accessor_methods_with_fresh_cache(reflection)
           end
         end
@@ -64,7 +64,7 @@ module PluginAWeek #:nodoc:
           reflection = reflections[association_id.to_sym]
           if Object.const_defined?(reflection.class_name) && reflection.klass.enumeration?
             has_one_enumeration_accessor_methods(reflection)
-          else
+          elsif enumeration?
             enumeration_accessor_methods_with_fresh_cache(reflection)
           end
         end

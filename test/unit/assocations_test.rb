@@ -110,3 +110,33 @@ class EnumerationWithHasManyAssociationTest < Test::Unit::TestCase
     Country.destroy_all
   end
 end
+
+class EnumerationWithHasManyModelAssociationTest < Test::Unit::TestCase
+  def setup
+    @manufacturer = Manufacturer[:ford]
+    @first_car = create_car(:manufacturer => @manufacturer)
+    
+    # Load the association
+    @manufacturer.cars.inspect
+  end
+  
+  def test_should_automatically_reload_associations
+    second_car = create_car(:manufacturer => @manufacturer)
+    assert_equal [@first_car, second_car], @manufacturer.cars
+  end
+end
+
+class ModelWithHasManyModelAssociationTest < Test::Unit::TestCase
+  def setup
+    @car = create_car
+    @first_passenger = create_passenger(:car => @car)
+    
+    # Load the association
+    @car.passengers.inspect
+  end
+  
+  def test_should_not_automatically_reload_associations
+    create_passenger(:car => @car)
+    assert_equal [@first_passenger], @car.passengers
+  end
+end

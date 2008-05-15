@@ -60,15 +60,19 @@ module Factory
   end
   
   build Language do |attributes|
-    attributes[:country] ||= create_country unless attributes.include?(:country)
+    attributes[:country] = create_country unless attributes.include?(:country)
     attributes.reverse_merge!(
       :id => 1,
       :name => 'English'
     )
   end
   
+  build Passenger do |attributes|
+    attributes[:car] = create_car unless attributes.include?(:car)
+  end
+  
   build Region do |attributes|
-    attributes[:country] ||= create_country unless attributes.include?(:country)
+    attributes[:country] = create_country unless attributes.include?(:country)
     attributes.reverse_merge!(
       :id => 1,
       :name => 'New Jersey'
