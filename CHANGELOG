@@ -1,5 +1,7 @@
 *SVN*
 
+*0.1.1* (May 14th, 2008)
+
 * Fix automatically clearing association cache when it shouldn't be
 
 *0.1.0* (May 5th, 2008)
