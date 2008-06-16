@@ -287,6 +287,25 @@ class EnumerationAfterBeingCreatedTest < Test::Unit::TestCase
     assert !@red.in?('blue', :green)
   end
   
+  def test_should_stringify_enumeration_attributes
+    assert_equal 'red', @red.to_s
+    assert_equal 'red', @red.to_str
+  end
+  
+  def test_should_arify_enumeration_attributes
+    assert_equal %w(red), @red.to_ary
+  end
+  
+  def test_should_be_able_to_compare_with_strings
+    assert 'red' == @red
+    assert @red == 'red'
+  end
+  
+  def test_should_be_able_to_compare_with_arrays
+    assert %w(red) == @red.to_ary
+    assert @red.to_ary == %w(red)
+  end
+  
   def teardown
     Color.destroy_all
   end
@@ -490,6 +509,25 @@ class EnumerationWithMultipleAttributesTest < Test::Unit::TestCase
     assert !@users_index.respond_to?(:users?)
     assert !@users_index.respond_to?(:index?)
     assert !@users_index.respond_to?(:users_index?)
+  end
+  
+  def test_should_stringify_enumeration_attributes
+    assert_equal 'users, index', @users_index.to_s
+    assert_equal 'users, index', @users_index.to_str
+  end
+  
+  def test_should_arify_enumeration_attributes
+    assert_equal %w(users index), @users_index.to_ary
+  end
+  
+  def test_should_not_be_able_to_compare_with_strings
+    assert 'users, index' != @users_index
+    assert @users_index != 'users, index'
+  end
+  
+  def test_should_be_able_to_compare_with_arrays
+    assert %w(users index) == @users_index.to_ary
+    assert @users_index.to_ary == %w(users index)
   end
   
   def teardown

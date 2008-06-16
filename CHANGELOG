@@ -1,5 +1,15 @@
 *SVN*
 
+*0.1.2* (June 15th, 2008)
+
+* Avoid string evaluation for dynamic methods
+
+* Fix has_many/has_one associations improperly loading classes too early
+
+* Add support for string and array comparison
+
+* Use after_create/after_destroy callbacks instead of defining the callback method itself
+
 *0.1.1* (May 14th, 2008)
 
 * Fix automatically clearing association cache when it shouldn't be

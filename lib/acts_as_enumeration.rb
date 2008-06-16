@@ -105,16 +105,6 @@ module PluginAWeek #:nodoc:
         
         extend PluginAWeek::ActsAsEnumeration::ClassMethods
         include PluginAWeek::ActsAsEnumeration::InstanceMethods
-        
-        # Override association accessors for any models that have defined an
-        # association with this enumeration
-        ActiveRecord::Base.send(:subclasses).each do |model|
-          model.reflections.each do |association_id, reflection|
-            if [:has_many, :has_one].include?(reflection.macro) && reflection.class_name == self.to_s
-              model.send("#{reflection.macro}_enumeration_accessor_methods", reflection)
-            end
-          end
-        end
       end
       
       # Is this class an enumeration?
@@ -146,15 +136,16 @@ module PluginAWeek #:nodoc:
         write_inheritable_array(:columns, [ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)])
         
         # Add finders
-        class_eval <<-end_eval
-          def self.find_all_by_#{name}(value)
-            find_all_by_attribute("#{name}", value)
+        klass = class << self; self; end
+        klass.class_eval do
+          define_method("find_all_by_#{name}") do |value|
+            find_all_by_attribute(name, value)
           end
           
-          def self.find_by_#{name}(value)
-            find_by_attribute("#{name}", value)
+          define_method("find_by_#{name}") do |value|
+            find_by_attribute(name, value)
           end
-        end_eval
+        end
       end
       
       # Finds all of the values in this enumeration.  The values will be cached
@@ -322,12 +313,22 @@ module PluginAWeek #:nodoc:
       
       # Gets the values matching the enumeration attributes
       def enumeration_values
-        enumeration_attributes.collect {|attribute| send(attribute)}.map {|value| value && (value.is_a?(Symbol) ? value.to_s : value)}
+        enumeration_attributes.collect {|attribute| send(attribute)}
       end
       
       # Stringifies the enumeration attributes
       def to_s
-        enumeration_values * ', '
+        to_str
+      end
+      
+      # Add support for equality comparison with strings
+      def to_str
+        to_ary * ', '
+      end
+      
+      # Adds support for equality comparison with arrays
+      def to_ary
+        enumeration_values
       end
       
       private

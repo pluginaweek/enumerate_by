@@ -34,67 +34,44 @@ module PluginAWeek #:nodoc:
         def has_many_with_enumerations(association_id, options = {}, &extension)
           has_many_without_enumerations(association_id, options, &extension)
           
-          # Override accessor if class is already defined
           reflection = reflections[association_id.to_sym]
-          if Object.const_defined?(reflection.class_name) && reflection.klass.enumeration?
-            has_many_enumeration_accessor_methods(reflection)
-          elsif enumeration?
-            enumeration_accessor_methods_with_fresh_cache(reflection)
-          end
-        end
-        
-        # Generates accessor methods for has_many enumeration associations
-        def has_many_enumeration_accessor_methods(reflection)
           name = reflection.name
-          primary_key_name = reflection.primary_key_name
-          class_name = reflection.class_name
           
-          module_eval <<-end_eval
-            def #{name}
-              #{class_name}.find_all_by_#{primary_key_name}(#{primary_key})
+          define_method("#{name}_with_enumerations") do
+            klass = reflection.klass
+            
+            # If we're looking up an enumeration class, then use its finder
+            if klass.enumeration?
+              klass.send("find_all_by_#{reflection.primary_key_name}", send(self.class.primary_key))
+            else
+              value = send("#{name}_without_enumerations")
+              instance_variable_set("@#{name}", nil) if self.class.enumeration? # Get rid of the cached value
+              value
             end
-          end_eval
+          end
+          alias_method_chain name, :enumerations
         end
         
         # Adds support for has_one and enumerations
         def has_one_with_enumerations(association_id, options = {})
           has_one_without_enumerations(association_id, options)
           
-          # Override accessor if class is already defined
           reflection = reflections[association_id.to_sym]
-          if Object.const_defined?(reflection.class_name) && reflection.klass.enumeration?
-            has_one_enumeration_accessor_methods(reflection)
-          elsif enumeration?
-            enumeration_accessor_methods_with_fresh_cache(reflection)
-          end
-        end
-        
-        # Generates accessor methods for has_one enumeration associations
-        def has_one_enumeration_accessor_methods(reflection)
-          name = reflection.name
-          primary_key_name = reflection.primary_key_name
-          class_name = reflection.class_name
-          
-          module_eval <<-end_eval
-            def #{name}
-              #{class_name}.find_by_#{primary_key_name}(#{primary_key})
-            end
-          end_eval
-        end
-        
-        # Wraps the reflection's accessor methods to ensure that a fresh value
-        # is always used (otherwise you would need to constantly reload the enumeration)
-        def enumeration_accessor_methods_with_fresh_cache(reflection)
           name = reflection.name
           
-          module_eval <<-end_eval
-            def #{name}_with_fresh_cache
-              value = #{name}_without_fresh_cache
-              @#{name} = nil # Get rid of the cached value
+          define_method("#{name}_with_enumerations") do
+            klass = reflection.klass
+            
+            # If we're looking up an enumeration class, then use its finder
+            if klass.enumeration?
+              klass.send("find_by_#{reflection.primary_key_name}", send(self.class.primary_key))
+            else
+              value = send("#{name}_without_enumerations")
+              instance_variable_set("@#{name}", nil) if self.class.enumeration? # Get rid of the cached value
               value
             end
-            alias_method_chain :#{name}, :fresh_cache
-          end_eval
+          end
+          alias_method_chain name, :enumerations
         end
         
         # Adds support for belongs_to and enumerations
@@ -103,12 +80,8 @@ module PluginAWeek #:nodoc:
           
           # Override accessor if class is already defined
           reflection = reflections[association_id.to_sym]
-          belongs_to_enumeration_accessor_methods(reflection) if !reflection.options[:polymorphic] && reflection.klass.enumeration? # We don't care about loading the class here
-        end
-        
-        # Generates accessor methods for belongs_to enumeration associations
-        def belongs_to_enumeration_accessor_methods(reflection)
-          if !reflection.options[:polymorphic]
+          
+          if !reflection.options[:polymorphic] && reflection.klass.enumeration?
             name = reflection.name
             primary_key_name = reflection.primary_key_name
             class_name = reflection.class_name
@@ -116,7 +89,7 @@ module PluginAWeek #:nodoc:
             
             if enumeration?
               # Create our own named scope since we can't run queries on the enumeration class
-              (class << self; self end).instance_eval do
+              (class << self; self; end).instance_eval do
                 define_method("with_#{name}") do |*identifiers|
                   identifiers.flatten!
                   values = klass.send("find_all_by_#{primary_key_name}", identifiers.shift)
@@ -127,7 +100,7 @@ module PluginAWeek #:nodoc:
                   values
                 end
                 
-                alias_method :"with_#{name.to_s.pluralize}", :"with_#{name}"
+                alias_method "with_#{name.to_s.pluralize}", "with_#{name}"
               end
             else
               # Add generic scopes that can have enumeration identifiers passed in
@@ -138,16 +111,16 @@ module PluginAWeek #:nodoc:
               end
             end
             
-            module_eval <<-end_eval
-              def #{name}
-                #{class_name}.find_by_id(self.#{primary_key_name})
-              end
-              
-              def #{name}_with_enumerations=(new_value)
-                self.#{name}_without_enumerations = new_value.is_a?(#{class_name}) ? new_value : #{class_name}.find_by_any(new_value)
-              end
-              alias_method_chain :#{name}=, :enumerations
-            end_eval
+            # Association reader
+            define_method(name) do
+              klass.find_by_id(send(primary_key_name))
+            end
+            
+            # Association writer
+            define_method("#{name}_with_enumerations=") do |new_value|
+              send("#{name}_without_enumerations=", new_value.is_a?(klass) ? new_value : klass.find_by_any(new_value))
+            end
+            alias_method_chain "#{name}=", :enumerations
           end
         end
       end
