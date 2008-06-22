@@ -30,11 +30,20 @@ it and other models in the application.
 
 acts_as_enumeration adds support for enumerations in Rails by providing methods
 for interacting with records in a table as if they were values in an
-enumeration.
+enumeration.  The important thing to remember about this plugin is that you
+always use the enumeration attributes within the application and know that the
+enumeration ids are stored in the database.  This means that you would use 'red'
+everywhere in your code when referencing the 'red' enumeration identifier, but
+it would always be stored in the database with the integer value of 1.
+
+In addition, remember that your enumerations act almost exactly like regular
+ActiveRecord models.  This means that you can define validations, enumerations,
+etc.  There is limited support for advanced finder options, address by the
+acts_as_enumeration_in_memory plugin discussed later on.
 
 == Usage
 
-=== Single-dimensional enumeration
+=== Default enumeration
 
   class Color < ActiveRecord::Base
     acts_as_enumeration
@@ -51,6 +60,61 @@ enumeration.
     
     create :id => 1, :title => 'Blink'
   end
+
+=== Additional enumeration attributes
+
+  class Book < ActiveRecord::Base
+    acts_as_enumeration :title
+    
+    column :author, :string
+    column :num_pages, :integer
+    
+    validates_presence_of :author
+    validates_presence_of :num_pages
+    
+    create :id => 1, :title => 'Blink', :author => 'Malcolm Gladwell', :num_pages => 277
+  end
+
+=== Associations
+
+  class ColorGroup < ActiveRecord::Base
+    acts_as_enumeration
+    
+    has_many :colors, :foreign_key => 'group_id'
+    
+    create :id => 1, :name => 'RGB'
+    create :id => 2, :name => 'CMYK'
+  end
+  
+  class Color < ActiveRecord::Base
+    acts_as_enumeration
+    
+    column :group_id, :integer
+    
+    belongs_to :group, :class_name => 'ColorGroup'
+    has_many :cars
+  end
+
+  class Car < ActiveRecord::Base
+    belongs_to :color
+  end
+
+=== Setting enumeration attributes
+
+  class Color < ActiveRecord::Base
+    acts_as_enumeration
+    
+    create :id => 1, :name => 'red'
+    create :id => 2, :name => 'blue'
+    create :id => 3, :name => 'green'
+  end
+  
+  class Car < ActiveRecord::Base
+    belongs_to :car
+  end
+  
+  car = Car.create(:color => 'red')
+  car.color = 'blue'
 
 == Future development
 

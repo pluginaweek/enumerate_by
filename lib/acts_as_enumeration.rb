@@ -57,6 +57,21 @@ module PluginAWeek #:nodoc:
   # 
   # This will create enumerations identified by the +title+ attribute instead of
   # the commonly used +name+ attribute.
+  # 
+  # == Additional enumeration attributes
+  # 
+  # In addition to the attribute used to identify an enumeration identifier, you
+  # can also define additional attributes just like regular ActiveRecord models:
+  # 
+  #   class Book < ActiveRecord::Base
+  #     acts_as_enumeration :title
+  #     
+  #     column :author, :string
+  #     column :num_pages, :integer
+  #     
+  #     validates_presence_of :author
+  #     validates_numericality_of :num_pages
+  #   end
   module ActsAsEnumeration #:nodoc:
     def self.included(base) #:nodoc:
       base.class_eval do

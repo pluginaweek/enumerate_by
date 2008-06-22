@@ -4,8 +4,8 @@ module PluginAWeek #:nodoc:
       # Adds support for using the enumeration value in dynamic finders and
       # conditions, such as:
       # 
-      #   Car.find_by_color(:red)
-      #   Car.find(:conditions => {:color => :red})
+      #   Car.find_by_color('red')
+      #   Car.find(:conditions => {:color => 'red'})
       module BaseConditions
         def self.extended(base) #:nodoc:
           class << base

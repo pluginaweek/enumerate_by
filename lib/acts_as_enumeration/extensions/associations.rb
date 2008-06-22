@@ -1,7 +1,7 @@
 module PluginAWeek #:nodoc:
   module ActsAsEnumeration
     module Extensions #:nodoc:
-      # Adds auto-generated methods for any belongs_to enumeration
+      # Adds auto-generated methods for any belongs_to/has_one/has_many enumeration
       # associations.  For example,
       # 
       #   class Color < ActiveRecord::Base
@@ -21,6 +21,40 @@ module PluginAWeek #:nodoc:
       #   red_cars = Car.with_color(:red)
       #   blue_car = Car.with_color(:blue)
       #   red_and_blue_cars = Car.with_colors(:red, :blue)
+      # 
+      # In addition to these named scopes, this adds support for setting enumeration
+      # associations using the enumeration attribute.  For example,
+      # 
+      #   car = Car.find(1)
+      #   car.color = 'red'
+      #   car.save
+      # 
+      # == has_one/has_many
+      # 
+      # In addition to belongs_to, you can also define has_one/has_many associations
+      # with other regular or enumeration models.  For example,
+      # 
+      #   class ColorGroup < ActiveRecord::Base
+      #     acts_as_enumeration
+      #     
+      #     has_many :colors, :foreign_key => 'group_id'
+      #     
+      #     create :id => 1, :name => 'RGB'
+      #     create :id => 2, :name => 'CMYK'
+      #   end
+      #   
+      #   class Color < ActiveRecord::Base
+      #     acts_as_enumeration
+      #     
+      #     column :group_id, :integer
+      #     
+      #     belongs_to :group, :class_name => 'ColorGroup'
+      #     has_many :cars
+      #   end
+      #   
+      #   class Car < ActiveRecord::Base
+      #     belongs_to :color
+      #   end
       module Associations
         def self.extended(base) #:nodoc:
           class << base
