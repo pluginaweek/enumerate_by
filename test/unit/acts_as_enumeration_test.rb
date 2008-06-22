@@ -18,7 +18,7 @@ class EnumerationByDefaultTest < Test::Unit::TestCase
   end
   
   def test_should_not_have_any_attributes_protected
-    assert_equal [], @color.attributes_protected_by_default
+    assert_equal [], @color.send(:attributes_protected_by_default)
   end
 end
 
@@ -200,19 +200,6 @@ class EnumerationWithCacheTest < Test::Unit::TestCase
     assert_same Color.find_by_name(:red), Color.find_by_name(:red)
   end
   
-  def test_should_clear_all_cache_after_resetting_the_cache
-    all_colors = Color.find(:all)
-    Color.reset_cache
-    assert_not_same all_colors, Color.find(:all)
-  end
-  
-  def test_should_clear_id_cache_after_resetting_the_cache
-    red = Color.find_by_id(1)
-    red.id = 4
-    Color.reset_cache
-    assert_same red, Color.find_by_id(4)
-  end
-  
   def test_should_clear_cache_after_creating_a_new_record
     all_colors = Color.find(:all)
     create_color(:id => 3, :name => 'blue')
@@ -255,7 +242,7 @@ class EnumerationAfterBeingCreatedTest < Test::Unit::TestCase
     @red.name = 'white'
     assert_raise(ActiveRecord::ReadOnlyRecord) {@red.save!}
   ensure
-    Color.reset_cache
+    @red.name = 'red'
   end
   
   def test_should_be_allowed_to_be_destroyed
@@ -287,23 +274,14 @@ class EnumerationAfterBeingCreatedTest < Test::Unit::TestCase
     assert !@red.in?('blue', :green)
   end
   
-  def test_should_stringify_enumeration_attributes
+  def test_should_stringify_enumeration_attribute
     assert_equal 'red', @red.to_s
     assert_equal 'red', @red.to_str
-  end
-  
-  def test_should_arify_enumeration_attributes
-    assert_equal %w(red), @red.to_ary
   end
   
   def test_should_be_able_to_compare_with_strings
     assert 'red' == @red
     assert @red == 'red'
-  end
-  
-  def test_should_be_able_to_compare_with_arrays
-    assert %w(red) == @red.to_ary
-    assert @red.to_ary == %w(red)
   end
   
   def teardown
@@ -404,134 +382,6 @@ class EnumerationWithCustomAttributesTest < Test::Unit::TestCase
   
   def teardown
     Book.destroy_all
-  end
-end
-
-class EnumerationWithMultipleAttributesTest < Test::Unit::TestCase
-  def setup
-    @users_index = create_access_path(:controller => 'users', :action => 'index')
-  end
-  
-  def test_should_not_have_a_controller
-    path = AccessPath.new
-    assert path.controller.blank?
-  end
-  
-  def test_should_not_have_an_action
-    path = AccessPath.new
-    assert path.action.blank?
-  end
-  
-  def test_should_have_3_columns
-    assert_equal 3, AccessPath.columns.size
-  end
-  
-  def test_should_not_require_a_controller
-    path = new_access_path(:controller => nil)
-    assert path.valid?
-  end
-  
-  def test_should_not_require_an_action
-    path = new_access_path(:action => nil)
-    assert path.valid?
-  end
-  
-  def test_should_require_a_unique_controller_and_action
-    second_path = new_access_path(:controller => 'users', :action => 'index')
-    assert !second_path.valid?
-    assert_equal 1, Array(second_path.errors.on(:controller)).size
-  end
-  
-  def test_should_allow_finding_all_by_controller_with_symbol
-    assert_equal [@users_index], AccessPath.find_all_by_controller(:users)
-  end
-  
-  def test_should_allow_finding_all_by_controller_with_string
-    assert_equal [@users_index], AccessPath.find_all_by_controller('users')
-  end
-  
-  def test_should_allow_finding_all_by_action_with_symbol
-    assert_equal [@users_index], AccessPath.find_all_by_action(:index)
-  end
-  
-  def test_should_allow_finding_all_by_action_with_string
-    assert_equal [@users_index], AccessPath.find_all_by_action('index')
-  end
-  
-  def test_should_allow_finding_by_controller_with_symbol
-    assert_equal @users_index, AccessPath.find_by_controller(:users)
-  end
-  
-  def test_should_allow_finding_by_controller_with_string
-    assert_equal @users_index, AccessPath.find_by_controller('users')
-  end
-  
-  def test_should_allow_finding_by_action_with_symbol
-    assert_equal @users_index, AccessPath.find_by_action(:index)
-  end
-  
-  def test_should_allow_finding_by_action_with_string
-    assert_equal @users_index, AccessPath.find_by_action('index')
-  end
-  
-  def test_should_allow_finding_by_action_with_nil
-    users = create_access_path(:id => 2, :controller => 'users', :action => nil)
-    assert_equal users, AccessPath.find_by_action(nil)
-  end
-  
-  def test_should_find_indexed_model_with_a_symbol
-    assert_equal @users_index, AccessPath[:users, :index]
-  end
-  
-  def test_should_find_indexed_model_with_a_string
-    assert_equal @users_index, AccessPath['users', 'index']
-  end
-  
-  def test_should_find_index_model_with_missing_attribute
-    users = create_access_path(:id => 2, :controller => 'users', :action => nil)
-    assert_equal @users_index, AccessPath['users']
-  end
-  
-  def test_should_allow_finding_by_any_with_symbol
-    assert_equal @users_index, AccessPath.find_by_any(:users, :index)
-  end
-  
-  def test_should_allow_finding_by_any_with_string
-    assert_equal @users_index, AccessPath.find_by_any('users', 'index')
-  end
-  
-  def test_should_allow_finding_by_any_with_string_and_missing_attribute
-    users = create_access_path(:id => 2, :controller => 'users', :action => nil)
-    assert_equal @users_index, AccessPath.find_by_any('users')
-  end
-  
-  def test_should_not_respond_to_identifier_queries
-    assert !@users_index.respond_to?(:users?)
-    assert !@users_index.respond_to?(:index?)
-    assert !@users_index.respond_to?(:users_index?)
-  end
-  
-  def test_should_stringify_enumeration_attributes
-    assert_equal 'users, index', @users_index.to_s
-    assert_equal 'users, index', @users_index.to_str
-  end
-  
-  def test_should_arify_enumeration_attributes
-    assert_equal %w(users index), @users_index.to_ary
-  end
-  
-  def test_should_not_be_able_to_compare_with_strings
-    assert 'users, index' != @users_index
-    assert @users_index != 'users, index'
-  end
-  
-  def test_should_be_able_to_compare_with_arrays
-    assert %w(users index) == @users_index.to_ary
-    assert @users_index.to_ary == %w(users index)
-  end
-  
-  def teardown
-    AccessPath.destroy_all
   end
 end
 

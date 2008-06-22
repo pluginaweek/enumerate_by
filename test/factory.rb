@@ -23,14 +23,6 @@ module Factory
     end_eval
   end
   
-  build AccessPath do |attributes|
-    attributes.reverse_merge!(
-      :id => 1,
-      :controller => 'users',
-      :action => 'index'
-    )
-  end
-  
   build Book do |attributes|
     attributes.reverse_merge!(
       :id => 1,

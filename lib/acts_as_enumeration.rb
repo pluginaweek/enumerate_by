@@ -57,28 +57,6 @@ module PluginAWeek #:nodoc:
   # 
   # This will create enumerations identified by the +title+ attribute instead of
   # the commonly used +name+ attribute.
-  # 
-  # == Multi-dimensional identified enumerations
-  # 
-  # You may also need to define enumerations that are uniquely identified by
-  # multiple attributes.  For example,
-  # 
-  #   class AccessPath
-  #     acts_as_enumeration :controller, :action
-  #     
-  #     create :id => 1, :controller => 'users', :action => 'index'identifier
-  #     create :id => 2, :controller => 'users', :action => 'new'
-  #     create :id => 3, :controller => 'sessions', :action => 'new'
-  #   end
-  #  
-  # These types of enumerations define identifiers that are unique on two dimensions:
-  # +controller+ + +action+.  Access to the individual identifies is similar to
-  # accessing one-dimensional enumerations:
-  # 
-  #   >> AccessPath[:users, :index]
-  #   => #<AccessPath:0x480c808 @attributes={"controller"=>"users", "action"=>"index", "id"=>"1"}>
-  #   >> AccessPath[:users, :new]
-  #   =>  #<AccessPath:0x480c908 @attributes={"controller"=>"users", "action=>"new", "id"=>"2"}>
   module ActsAsEnumeration #:nodoc:
     def self.included(base) #:nodoc:
       base.class_eval do
@@ -90,21 +68,28 @@ module PluginAWeek #:nodoc:
       # Indicates that this class is a representative of an enumeration.
       # 
       # The default attribute used to reference a unique identifier is +name+.
-      # You can override this by specifying one or more attributes that will be
+      # You can override this by specifying a custom attribute that will be
       # used to uniquely reference a particular identifier. See PluginAWeek::ActsAsEnumeration
-      # for more information about single- vs. multi-dimensional enumerations.
-      def acts_as_enumeration(*attributes)
-        attributes << :name if attributes.empty?
-        attributes.map!(&:to_s)
+      # for more information.
+      def acts_as_enumeration(attribute = :name)
+        write_inheritable_attribute :enumeration_attribute, attribute.to_s
+        class_inheritable_reader :enumeration_attribute
         
-        write_inheritable_attribute :enumeration_attributes, attributes
-        class_inheritable_reader :enumeration_attributes
+        class_inheritable_array :columns
+        class_inheritable_array :identifiers
         
-        after_save :add_to_cache
-        after_destroy :remove_from_cache
+        # Initialize the index cache
+        @all_by = {}
         
         extend PluginAWeek::ActsAsEnumeration::ClassMethods
         include PluginAWeek::ActsAsEnumeration::InstanceMethods
+        
+        column :id, :integer
+        column enumeration_attribute, :string
+        
+        validates_presence_of :id
+        validates_presence_of enumeration_attribute
+        validate :identifier_is_unique
       end
       
       # Is this class an enumeration?
@@ -115,24 +100,17 @@ module PluginAWeek #:nodoc:
     
     module ClassMethods
       def self.extended(base) #:nodoc:
-        base.class_eval do
-          column :id, :integer
-          
-          enumeration_attributes.each do |attribute|
-            column attribute, :string
-          end
-          
-          class_inheritable_array :columns
-          class_inheritable_array :identifiers
-          
-          validates_presence_of :id
-          validates_presence_of enumeration_attributes.first if enumeration_attributes.length == 1
-          validate :identifier_is_unique
+        class << base
+          # Don't allow silent failures
+          alias_method :create, :create!
         end
       end
       
       # Defines a new column in the model
       def column(name, sql_type = nil, default = nil, null = true)
+        # Remove any existing columns with the same name
+        columns.reject! {|column| column.name == name.to_s} if columns
+        
         write_inheritable_array(:columns, [ActiveRecord::ConnectionAdapters::Column.new(name.to_s, default, sql_type.to_s, null)])
         
         # Add finders
@@ -146,6 +124,9 @@ module PluginAWeek #:nodoc:
             find_by_attribute(name, value)
           end
         end
+        
+        # Prepare index cache for this column
+        @all_by[name.to_s] = {}
       end
       
       # Finds all of the values in this enumeration.  The values will be cached
@@ -179,23 +160,23 @@ module PluginAWeek #:nodoc:
       # * +fixnum+ - The id of the record
       # * +symbol+ - The symbolic name of the identifier
       # * +string+ - The name of the identifier
-      # * +Array+ - An array of strings/symbols that reference the identifier
       # 
       # If you do not want to worry about exceptions, then use +find_by_id+ or
-      # +find_by_name+.
-      def [](*values)
-        find_by_any(*values) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with value(s) #{values.length == 1 ? values.first.inspect : values.inspect}")
+      # +<tt>find_by_#{attribute}</tt>.
+      def [](value)
+        find_by_any(value) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with value #{value.inspect}")
       end
       
       # Finds all records that have an attribute with the given record
       def find_all_by_attribute(attribute, value)
         attribute = attribute.to_s
-        value = value.to_s if value.is_a?(Symbol) && enumeration_attributes.include?(attribute)
+        value = value.to_s if value.is_a?(Symbol) && attribute == enumeration_attribute
         
-        @all_by ||= {}
-        @all_by[attribute] ||= {}
-        @all_by[attribute][value] ||= find(:all).inject([]) {|items, item| items << item if item.send(attribute) == value; items}
-        @all_by[attribute][value].dup
+        if records = @all_by[attribute][value]
+          records.dup
+        else
+          []
+        end
       end
       
       # Finds the first record the has an attribute with the given value
@@ -203,31 +184,19 @@ module PluginAWeek #:nodoc:
         find_all_by_attribute(attribute, value).first
       end
       
-      # Finds the record that matches all of the model's enumeration attributes for
-      # the given values
-      def find_by_enumeration_attributes(*values)
-        values = values.flatten.map {|value| value && (value.is_a?(Symbol) ? value.to_s : value)}
-        
-        @all_by_enumeration_attributes ||= {}
-        unless record = @all_by_enumeration_attributes[values]
-          records = find_all_by_attribute(enumeration_attributes.first, values.first)
-          values[1..-1].each_with_index do |value, index|
-            records &= find_all_by_attribute(enumeration_attributes[index + 1], value)
-          end
-          
-          @all_by_enumeration_attributes[values] = record = records.first
-        end
-        
-        record
+      # Finds the record that matches the model's enumeration attribute for the
+      # given value
+      def find_by_enumeration_attribute(value)
+        send("find_by_#{enumeration_attribute}", value)
       end
       
       # Finds the enumerated value indicated by id or returns nil if nothing
       # was found
-      def find_by_any(*values)
-        if values.length == 1 && values.first.is_a?(Fixnum)
-          find_by_id(values.first)
+      def find_by_any(value)
+        if value.is_a?(Fixnum)
+          find_by_id(value)
         else
-          find_by_enumeration_attributes(*values)
+          find_by_enumeration_attribute(value)
         end
       end
       
@@ -244,44 +213,42 @@ module PluginAWeek #:nodoc:
       # Updates the cache based on the operation being performed. We prefer to
       # update the cache rather than reset for performance reasons.
       def update_cache(operation, record)
-        # Remove from all cache
+        # Update the all cache
         @all.send(operation, record) if @all
         
-        # Remove from all_by cache
-        @all_by.each do |attribute, values|
-          if records = values[record.send(attribute)]
+        # Update the indexes for each attribute in the record to improve
+        # performance when defining large enumerations
+        columns.each do |column|
+          value = record.send(column.name)
+          
+          if records = @all_by[column.name][value]
             records.send(operation, record)
+          elsif operation == :push
+            @all_by[column.name][value] = [record]
           end
-        end if @all_by
-        
-        # Remove from enumeration value cache
-        enumeration_values = record.enumeration_values
-        (0..enumeration_values.length - 1).each do |index|
-          values = enumeration_values[0..index]
-          if operation == :delete
-            @all_by_enumeration_attributes.delete(values) if @all_by_enumeration_attributes[values] == record
-          else
-            @all_by_enumeration_attributes[values] ||= record
-          end
-        end if @all_by_enumeration_attributes
-      end
-      
-      # Resets the collection of values in the enumeration
-      def reset_cache
-        @all = @all_by = @all_by_enumeration_attributes = nil
+        end
       end
     end
     
     module InstanceMethods
-      def create_without_callbacks #:nodoc:
-        self.class.write_inheritable_array(:identifiers, [self])
-        @new_record = false
-        readonly!
-        id
+      def self.included(base) #:nodoc:
+        base.class_eval do
+          # Disable unused ActiveRecord features
+          {
+            :callbacks => %w(create_or_update valid?),
+            :dirty => %w(write_attribute save save!)
+          }.each do |feature, methods|
+            methods.each do |method|
+              method, punctuation = method.sub(/([?!=])$/, ''), $1
+              alias_method "#{method}#{punctuation}", "#{method}_without_#{feature}#{punctuation}"
+            end
+          end
+        end
       end
       
-      def destroy_without_callbacks #:nodoc:
+      def destroy #:nodoc:
         self.class.identifiers.delete(self)
+        remove_from_cache
         freeze
       end
       
@@ -291,16 +258,11 @@ module PluginAWeek #:nodoc:
         self
       end
       
-      # Allow id to be assigned via ActiveRecord::Base#attributes=
-      def attributes_protected_by_default #:nodoc:
-        []
-      end
-      
       # Whether or not this enumeration is equal to the given value
       def ==(arg)
         case arg
         when Symbol, String, Fixnum
-          return self == self.class.find_by_any(arg)
+          self == self.class.find_by_any(arg)
         else
           super
         end
@@ -311,11 +273,6 @@ module PluginAWeek #:nodoc:
         list.any? {|item| self === item}
       end
       
-      # Gets the values matching the enumeration attributes
-      def enumeration_values
-        enumeration_attributes.collect {|attribute| send(attribute)}
-      end
-      
       # Stringifies the enumeration attributes
       def to_s
         to_str
@@ -323,19 +280,32 @@ module PluginAWeek #:nodoc:
       
       # Add support for equality comparison with strings
       def to_str
-        to_ary * ', '
-      end
-      
-      # Adds support for equality comparison with arrays
-      def to_ary
-        enumeration_values
+        enumeration_value
       end
       
       private
-        # Does this identifier have unique enumeration values?
+        def create #:nodoc:
+          self.class.write_inheritable_array(:identifiers, [self])
+          @new_record = false
+          readonly!
+          add_to_cache
+          id
+        end
+        
+        # The current value for the enumeration attribute
+        def enumeration_value
+          send("#{enumeration_attribute}")
+        end
+        
+        # Allow id to be assigned via ActiveRecord::Base#attributes=
+        def attributes_protected_by_default #:nodoc:
+          []
+        end
+        
+        # Does this identifier have a unique enumeration value?
         def identifier_is_unique
-          existing_record = self.class.find_by_enumeration_attributes(enumeration_values)
-          errors.add(enumeration_attributes.first, ActiveRecord::Errors.default_error_messages[:taken]) if existing_record && existing_record != self
+          existing_record = self.class.find_by_enumeration_attribute(enumeration_value)
+          errors.add(enumeration_attribute, ActiveRecord::Errors.default_error_messages[:taken]) if existing_record && existing_record != self
         end
         
         # Adds this record to the cache

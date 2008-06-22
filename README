@@ -52,15 +52,6 @@ enumeration.
     create :id => 1, :title => 'Blink'
   end
 
-=== Multi-dimensional enumeration
-
-  class AccessPath < ActiveRecord::Base
-    acts_as_enumeration :controller, :action
-    
-    create :id => 1, :controller => 'users', :action => 'index'
-    create :id => 2, :controller => 'users', :action => 'new'
-  end
-
 == Future development
 
 See acts_as_enumeration_in_memory[http://wiki.pluginaweek.org/Acts_as_enumeration_in_memory]

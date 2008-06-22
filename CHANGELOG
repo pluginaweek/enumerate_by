@@ -1,5 +1,19 @@
 *SVN*
 
+*0.2.0* (June 22nd, 2008)
+
+* Improve performance by disabling unnecessary ActiveRecord hooks including callbacks, dirty attributes, timestamps, and transactions (important for enumerations with large sets of values)
+
+* Don't let #create silently fail
+
+* Remove ability to reset the cache
+
+* Improve performance by adding pre-indexing of enumeration attributes (important for enumerations with large sets of values)
+
+* Remove support for array comparison
+
+* Remove support for multiple enumeration attributes
+
 *0.1.2* (June 15th, 2008)
 
 * Avoid string evaluation for dynamic methods
