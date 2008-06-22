@@ -4,7 +4,7 @@ require 'rake/gempackagetask'
 require 'rake/contrib/sshpublisher'
 
 PKG_NAME           = 'acts_as_enumeration'
-PKG_VERSION        = '0.2.1'
+PKG_VERSION        = '0.2.2'
 PKG_FILE_NAME      = "#{PKG_NAME}-#{PKG_VERSION}"
 RUBY_FORGE_PROJECT = 'pluginaweek'
 
@@ -29,12 +29,13 @@ Rake::RDocTask.new(:rdoc) do |rdoc|
 end
 
 spec = Gem::Specification.new do |s|
+puts FileList['{lib,test}/**/*'].inspect
   s.name            = PKG_NAME
   s.version         = PKG_VERSION
   s.platform        = Gem::Platform::RUBY
   s.summary         = 'Adds support for declaring an ActiveRecord class as an enumeration'
   
-  s.files           = FileList['{lib,test}/**/*'].to_a + %w(CHANGELOG init.rb MIT-LICENSE Rakefile README)
+  s.files           = (FileList['{lib,test}/**/*'].to_a - FileList['test/app_root/log/*'].to_a + %w(CHANGELOG init.rb MIT-LICENSE Rakefile README)
   s.require_path    = 'lib'
   s.autorequire     = 'acts_as_enumeration'
   s.has_rdoc        = true
