@@ -35,7 +35,7 @@ puts FileList['{lib,test}/**/*'].inspect
   s.platform        = Gem::Platform::RUBY
   s.summary         = 'Adds support for declaring an ActiveRecord class as an enumeration'
   
-  s.files           = (FileList['{lib,test}/**/*'].to_a - FileList['test/app_root/log/*'].to_a + %w(CHANGELOG init.rb MIT-LICENSE Rakefile README)
+  s.files           = FileList['{lib,test}/**/*'].to_a - FileList['test/app_root/log/*'].to_a + %w(CHANGELOG init.rb MIT-LICENSE Rakefile README)
   s.require_path    = 'lib'
   s.autorequire     = 'acts_as_enumeration'
   s.has_rdoc        = true
