@@ -118,7 +118,7 @@ acts_as_enumeration_in_memory plugin discussed later on.
 
 == Future development
 
-See acts_as_enumeration_in_memory[http://wiki.pluginaweek.org/Acts_as_enumeration_in_memory]
+See acts_as_enumeration_in_memory[http://github.com/pluginaweek/acts_as_enumeration_in_memory]
 for more information about the future development of this plugin in terms of
 ease of maintenance and utilization of ActiveRecord.  acts_as_enumeration_in_memory
 is an experimental re-implementation of this plugin using an in-memory SQLite3
@@ -127,7 +127,7 @@ database.
 == Testing
 
 Before you can run any tests, the following gem must be installed:
-* plugin_test_helper[http://wiki.pluginaweek.org/Plugin_test_helper]
+* plugin_test_helper[http://github.com/pluginaweek/plugin_test_helper]
 
 To run against a specific version of Rails:
 
@@ -139,4 +139,4 @@ To run against a specific version of Rails:
 
 == References
 
-* Trevor Squires - enumerations_mixin[http://svn.protocool.com/rails/plugins/enumerations_mixin]
+* Trevor Squires - enumerations_mixin[http://svn.protocool.com/public/plugins/enumerations_mixin]
