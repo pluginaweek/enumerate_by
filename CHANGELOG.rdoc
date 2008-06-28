@@ -1,42 +1,34 @@
-*SVN*
+== master
 
-*0.2.2* (June 23rd, 2008)
+== 0.2.2 / 2008-06-23
 
 * Remove log files from gems
 
-*0.2.1* (June 22nd, 2008)
+== 0.2.1 / 2008-06-22
 
 * Improve documentation
 
-*0.2.0* (June 22nd, 2008)
+== 0.2.0 / 2008-06-22
 
 * Improve performance by disabling unnecessary ActiveRecord hooks including callbacks, dirty attributes, timestamps, and transactions (important for enumerations with large sets of values)
-
 * Don't let #create silently fail
-
 * Remove ability to reset the cache
-
 * Improve performance by adding pre-indexing of enumeration attributes (important for enumerations with large sets of values)
-
 * Remove support for array comparison
-
 * Remove support for multiple enumeration attributes
 
-*0.1.2* (June 15th, 2008)
+== 0.1.2 / 2008-06-15
 
 * Avoid string evaluation for dynamic methods
-
 * Fix has_many/has_one associations improperly loading classes too early
-
 * Add support for string and array comparison
-
 * Use after_create/after_destroy callbacks instead of defining the callback method itself
 
-*0.1.1* (May 14th, 2008)
+== 0.1.1 / 2008-05-14
 
 * Fix automatically clearing association cache when it shouldn't be
 
-*0.1.0* (May 5th, 2008)
+== 0.1.0 / 2008-05-05
 
 * Add support for overriding the unique attribute that defines an enumeration e.g.
 
@@ -44,35 +36,23 @@
   acts_as_enumeration :controller, :action
 
 * Add support for using enumerations in has_many/has_one associations
-
 * Add support for Rails 2.0
-
 * Use has_finder to auto-generate finders for each enumeration value after defining a belongs_to association
-
 * Removed support for database-backed enumerations in favor of always using virtual enumerations
-
 * Fix enumerations failing when being reloaded
-
 * Fix problems with setting enumeration attributes to nil
-
 * Add inheritance support for virtual enumerations
-
 * Add support for converting unsafe identifier names (like "red!") to their safe symbol equivalent ("red")
-
 * Add ability to use truth accessors for determing the identifier name
-
 * Add support for virtual enumerations that don't need to be backed by the database
 
-*0.0.2* (September 26th, 2007)
+== 0.0.2 / 2007-09-26
 
 * Move test fixtures out of the test application root directory
-
 * Convert dos newlines to unix newlines
 
-*0.0.1* (August 4th, 2007)
+== 0.0.1 / 2007-08-04
 
 * Initial public release
-
 * Add/refactor unit tests
-
 * Add documentation
