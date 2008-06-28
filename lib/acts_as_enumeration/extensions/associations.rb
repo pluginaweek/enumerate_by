@@ -18,9 +18,9 @@ module PluginAWeek #:nodoc:
       # 
       # will auto-generate named scopes for the Color enumeration like so:
       # 
-      #   red_cars = Car.with_color(:red)
-      #   blue_car = Car.with_color(:blue)
-      #   red_and_blue_cars = Car.with_colors(:red, :blue)
+      #   red_cars = Car.with_color('red')
+      #   blue_car = Car.with_color('blue')
+      #   red_and_blue_cars = Car.with_colors('red', 'blue')
       # 
       # In addition to these named scopes, this adds support for setting enumeration
       # associations using the enumeration attribute.  For example,

@@ -39,7 +39,7 @@ module PluginAWeek #:nodoc:
   # The actual records for an enumeration identifier can be accessed by id or
   # name:
   # 
-  #   >> Color[:red]
+  #   >> Color['red']
   #   => #<Color:0x480c808 @attributes={"name"=>"red", "id"=>"1"}>
   #   >> Color[1]
   #   => #<Color:0x480c808 @attributes={"name"=>"red", "id"=>"1"}>
