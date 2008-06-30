@@ -197,7 +197,7 @@ class EnumerationWithCacheTest < Test::Unit::TestCase
   end
   
   def test_should_cache_records_found_by_name
-    assert_same Color.find_by_name(:red), Color.find_by_name(:red)
+    assert_same Color.find_by_name('red'), Color.find_by_name('red')
   end
   
   def test_should_clear_cache_after_creating_a_new_record

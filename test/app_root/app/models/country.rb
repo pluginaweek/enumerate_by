@@ -3,4 +3,5 @@ class Country < ActiveRecord::Base
   
   has_many  :regions
   has_one   :language
+  has_one   :ambassador
 end

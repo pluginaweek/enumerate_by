@@ -1,6 +1,6 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class EnumerationWithBelongsToAssociationTest < Test::Unit::TestCase
+class ModelWithBelongsToAssociationTest < Test::Unit::TestCase
   def setup
     @red = create_color(:id => 1, :name => 'red')
     @blue = create_color(:id => 2, :name => 'blue')
@@ -36,17 +36,62 @@ class EnumerationWithBelongsToAssociationTest < Test::Unit::TestCase
   end
   
   def test_should_use_nil_if_enumeration_does_not_exist
-    @car.color = :green
+    @car.color = 'green'
     assert_nil @car.color
   end
   
   def teardown
     Color.destroy_all
-    Car.destroy_all
   end
 end
 
-class EnumerationWithBelongsToAssociationAsAClassTest < Test::Unit::TestCase
+class EnumerationWithBelongsToAssociationTest < Test::Unit::TestCase
+  def setup
+    @united_states = create_country(:id => 1, :name => 'United States')
+    @canada = create_country(:id => 2, :name => 'Canada')
+    @california = create_region(:name => 'California', :country => nil, :country_id => @united_states.id)
+  end
+  
+  def test_should_find_association_from_id
+    assert_equal @united_states, @california.country
+  end
+  
+  def test_should_use_the_cached_association
+    assert_same @united_states, @california.country
+  end
+  
+  def test_should_infer_enumeration_from_a_symbolized_name
+    @california.country = :Canada
+    assert_equal @canada, @california.country
+  end
+  
+  def test_should_infer_enumeration_from_a_stringified_name
+    @california.country = 'Canada'
+    assert_equal @canada, @california.country
+  end
+  
+  def test_should_infer_enumeration_from_an_id
+    @california.country = 2
+    assert_equal @canada, @california.country
+  end
+  
+  def test_should_infer_enumeration_from_a_record
+    @california.country = @canada
+    assert_equal @canada, @california.country
+  end
+  
+  def test_should_use_nil_if_enumeration_does_not_exist
+    @california.country = 'Nonexistent'
+    assert_nil @california.country
+  end
+  
+  def teardown
+    Region.destroy_all
+    Country.destroy_all
+  end
+end
+
+class ModelWithBelongsToAssociationAsAClassTest < Test::Unit::TestCase
   def setup
     @red = create_color(:id => 1, :name => 'red')
     @blue = create_color(:id => 2, :name => 'blue')
@@ -58,21 +103,44 @@ class EnumerationWithBelongsToAssociationAsAClassTest < Test::Unit::TestCase
   end
   
   def test_should_have_a_named_scope_for_finding_a_single_enumeration_identifier
-    assert_equal [@ford], Car.with_manufacturer(:ford)
-    assert_equal [@chevy], Car.with_manufacturer(:chevy)
+    assert_equal [@ford], Car.with_manufacturer('ford')
+    assert_equal [@chevy], Car.with_manufacturer('chevy')
   end
   
   def test_should_have_a_named_scope_for_finding_multiple_enumeration_identifiers
-    assert_equal [@ford, @chevy], Car.with_manufacturers(:ford, :chevy)
+    assert_equal [@ford, @chevy], Car.with_manufacturers('ford', 'chevy')
   end
   
   def teardown
     Color.destroy_all
-    Car.destroy_all
   end
 end
 
-class EnumerationWithPolymorphicBelongsToAssociationTest < Test::Unit::TestCase
+class EnumerationWithBelongsToAssociationAsAClassTest < Test::Unit::TestCase
+  def setup
+    @united_states = create_country(:id => 1, :name => 'United States')
+    @canada = create_country(:id => 2, :name => 'Canada')
+    
+    @california = create_region(:id => 1, :name => 'California', :country => @united_states)
+    @quebec = create_region(:id => 2, :name => 'Quebec', :country => @canada)
+  end
+  
+  def test_should_have_a_named_scope_for_finding_a_single_enumeration_identifier
+    assert_equal [@california], Region.with_country('United States')
+    assert_equal [@quebec], Region.with_country('Canada')
+  end
+  
+  def test_should_have_a_named_scope_for_finding_multiple_enumeration_identifiers
+    assert_equal [@california, @quebec], Region.with_countries('United States', 'Canada')
+  end
+  
+  def teardown
+    Region.destroy_all
+    Country.destroy_all
+  end
+end
+
+class ModelWithPolymorphicBelongsToAssociationTest < Test::Unit::TestCase
   def test_should_not_create_a_named_scope
     assert !Car.respond_to?(:with_addressable)
   end
@@ -90,6 +158,26 @@ class EnumerationWithHasOneAssociationTest < Test::Unit::TestCase
   
   def teardown
     Language.destroy_all
+    Country.destroy_all
+  end
+end
+
+class EnumerationWithHasOneModelTest < Test::Unit::TestCase
+  def setup
+    @united_states = create_country(:name => 'United States')
+    @john_smith = create_ambassador(:name => 'John Doe', :country => 'United States')
+  end
+  
+  def test_should_have_an_association
+    assert_equal @john_smith, @united_states.ambassador
+  end
+  
+  def test_should_automatically_reload_association
+    @john_smith.destroy
+    assert_nil @united_states.ambassador
+  end
+  
+  def teardown
     Country.destroy_all
   end
 end

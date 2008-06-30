@@ -17,6 +17,23 @@ class EnumerationWithFinderConditionsTest < Test::Unit::TestCase
   
   def teardown
     Color.destroy_all
-    Car.destroy_all
+  end
+end
+
+class EnumerationWithFinderUpdatesTest < Test::Unit::TestCase
+  def setup
+    @red = create_color(:id => 1, :name => 'red')
+    @blue = create_color(:id => 2, :name => 'blue')
+    @red_car = create_car(:name => 'Ford Mustang', :color_id => 1)
+  end
+  
+  def test_should_replace_enumerations_in_update_conditions
+    Car.update_all({:color => 'blue'}, :name => 'Ford Mustang')
+    @red_car.reload
+    assert_equal 'blue', @red_car.color
+  end
+  
+  def teardown
+    Color.destroy_all
   end
 end

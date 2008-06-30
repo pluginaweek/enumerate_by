@@ -125,10 +125,10 @@ module PluginAWeek #:nodoc:
               # Create our own named scope since we can't run queries on the enumeration class
               (class << self; self; end).instance_eval do
                 define_method("with_#{name}") do |*identifiers|
-                  identifiers.flatten!
-                  values = klass.send("find_all_by_#{primary_key_name}", identifiers.shift)
+                  identifiers = identifiers.flatten.map {|identifier| klass.find_by_any(identifier)}
+                  values = send("find_all_by_#{primary_key_name}", identifiers.shift)
                   identifiers.each do |identifier|
-                    values &= klass.send("find_all_by_#{primary_key_name}", identifier)
+                    values |= send("find_all_by_#{primary_key_name}", identifier)
                   end
                   
                   values

@@ -249,10 +249,7 @@ module PluginAWeek #:nodoc:
       def self.included(base) #:nodoc:
         base.class_eval do
           # Disable unused ActiveRecord features
-          {
-            :callbacks => %w(create_or_update valid?),
-            :dirty => %w(write_attribute save save!)
-          }.each do |feature, methods|
+          {:callbacks => %w(create_or_update valid?), :dirty => %w(write_attribute save save!)}.each do |feature, methods|
             methods.each do |method|
               method, punctuation = method.sub(/([?!=])$/, ''), $1
               alias_method "#{method}#{punctuation}", "#{method}_without_#{feature}#{punctuation}"

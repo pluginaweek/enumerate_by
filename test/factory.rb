@@ -29,6 +29,13 @@ module Factory
     record
   end
   
+  build Ambassador do |attributes|
+    attributes.reverse_merge!(
+      :country => 'United States',
+      :name => 'John Smith'
+    )
+  end
+  
   build Book do |attributes|
     attributes.reverse_merge!(
       :id => 1,
