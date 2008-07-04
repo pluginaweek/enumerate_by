@@ -2,10 +2,19 @@ module PluginAWeek #:nodoc:
   module ActsAsEnumeration
     module Extensions #:nodoc:
       # Adds support for using the enumeration value in dynamic finders and
-      # conditions, such as:
+      # conditions.  For example,
       # 
+      #   class Color < ActiveRecord::Base
+      #     acts_as_enumeration
+      #     
+      #     create :id => 1, :name => 'red'
+      #     create :id => 2, :name => 'blue'
+      #     create :id => 3, :name => 'green'
+      #   end
+      #   
       #   Car.find_by_color('red')
       #   Car.find(:conditions => {:color => 'red'})
+      #   Car.update_all({:color => 'red'})
       module BaseConditions
         def self.extended(base) #:nodoc:
           class << base

@@ -28,6 +28,7 @@ module PluginAWeek #:nodoc:
       #   car = Car.find(1)
       #   car.color = 'red'
       #   car.save
+      #   car.color   # => #<Color id: 1, name: "red">
       # 
       # == has_one/has_many
       # 
