@@ -388,7 +388,7 @@ module PluginAWeek #:nodoc:
       end
       
       # Enumeration values should never really be destroyed during runtime.
-      # However, this is supportedto complete the full circle for an record's
+      # However, this is supported to complete the full circle for an record's
       # liftime in ActiveRecord
       def destroy #:nodoc:
         self.class.identifiers.delete(self)
