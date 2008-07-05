@@ -40,10 +40,8 @@ module PluginAWeek #:nodoc:
   # The actual records for an enumeration identifier can be accessed by id or
   # name:
   # 
-  #   >> Color[1]
-  #   => #<Color id: 1, name: "red">
-  #   >> Color['red']
-  #   => #<Color id: 1, name: "red">
+  #   Color[1]      # => #<Color id: 1, name: "red">
+  #   Color['red']  # => #<Color id: 1, name: "red">
   # 
   # These records are cached, so there is no performance hit and the same object
   # can be compared against itself, i.e. Color[1] == Color['red']
@@ -64,10 +62,8 @@ module PluginAWeek #:nodoc:
   # values are indexed for the enumeration's lookup identifiers.  In this case,
   # records can be accessed by id or title:
   # 
-  #   >> Book[1]
-  #   => #<Book id: 1, title: "Blink">
-  #   >> Book['Blink']
-  #   => #<Book id: 1, title: "Blink">
+  #   Book[1]        # => #<Book id: 1, title: "Blink">
+  #   Book['Blink']  # => #<Book id: 1, title: "Blink">
   # 
   # == Additional enumeration attributes
   # 
@@ -88,8 +84,7 @@ module PluginAWeek #:nodoc:
   # 
   # These attributes are exactly like normal ActiveRecord attributes:
   # 
-  #   >> Book['Blink']
-  #   => #<Book id: 1, title: "Blink", author: "Malcolm Gladwell", num_pages: 277>
+  #   Book['Blink']   # => #<Book id: 1, title: "Blink", author: "Malcolm Gladwell", num_pages: 277>
   module ActsAsEnumeration #:nodoc:
     def self.included(base) #:nodoc:
       base.class_eval do
@@ -249,16 +244,11 @@ module PluginAWeek #:nodoc:
       #     create :id => 1, :title => 'Blink'
       #   end
       # 
-      #   >> Book[1]
-      #   => #<Book id: 1, title: "Blink">
-      #   >> Book['Blink']
-      #   => #<Book id: 1, title: "Blink">
-      #   >> Book[:Blink]
-      #   => #<Book id: 1, title: "Blink">
-      #   >> Book[2]
-      #   => ActiveRecord::RecordNotFound: Couldn't find Book with value(s) 2
-      #   >> Book['Into Thin Air']
-      #   => ActiveRecord::RecordNotFound: Couldn't find Book with value(s) "Into Thin Air"
+      #   Book[1]         # => #<Book id: 1, title: "Blink">
+      #   Book['Blink']   # => #<Book id: 1, title: "Blink">
+      #   Book[:Blink]    # => #<Book id: 1, title: "Blink">
+      #   Book[2]         # => ActiveRecord::RecordNotFound: Couldn't find Book with value(s) 2
+      #   Book['Invalid'] # => ActiveRecord::RecordNotFound: Couldn't find Book with value(s) "Invalid"
       def [](value)
         find_by_any(value) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with value #{value.inspect}")
       end
