@@ -140,7 +140,7 @@ module PluginAWeek #:nodoc:
             else
               # Add generic scopes that can have enumeration identifiers passed in
               %W(with_#{name} with_#{name.to_s.pluralize}).each do |scope_name|
-                named_scope scope_name, Proc.new {|*identifiers| {
+                named_scope scope_name.to_sym, Proc.new {|*identifiers| {
                   :conditions => {primary_key_name => identifiers.flatten.collect {|identifier| klass[identifier].id}}
                 }}
               end
