@@ -49,7 +49,8 @@ class EnumerationWithBelongsToAssociationTest < Test::Unit::TestCase
   def setup
     @united_states = create_country(:id => 1, :name => 'United States')
     @canada = create_country(:id => 2, :name => 'Canada')
-    @california = create_region(:name => 'California', :country => nil, :country_id => @united_states.id)
+    @california = create_region(:name => 'California', :country => nil)
+    @california.country_id = @united_states.id
   end
   
   def test_should_find_association_from_id
