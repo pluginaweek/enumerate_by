@@ -284,6 +284,10 @@ class EnumerationAfterBeingCreatedTest < Test::Unit::TestCase
     assert @red == 'red'
   end
   
+  def test_should_have_enumeration_value
+    assert_equal 'red', @red.enumeration_value
+  end
+  
   def teardown
     Color.destroy_all
   end

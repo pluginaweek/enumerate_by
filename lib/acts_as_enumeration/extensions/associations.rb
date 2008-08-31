@@ -156,6 +156,9 @@ module PluginAWeek #:nodoc:
               send("#{name}_without_enumerations=", new_value.is_a?(klass) ? new_value : klass.find_by_any(new_value))
             end
             alias_method_chain "#{name}=", :enumerations
+            
+            # Track the association
+            enumeration_associations[primary_key_name] = name.to_s
           end
         end
       end

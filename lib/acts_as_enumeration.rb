@@ -1,5 +1,7 @@
 require 'acts_as_enumeration/extensions/associations'
 require 'acts_as_enumeration/extensions/base_conditions'
+require 'acts_as_enumeration/extensions/serializer'
+require 'acts_as_enumeration/extensions/xml_serializer'
 
 module PluginAWeek #:nodoc:
   # An enumeration defines a finite set of identifiers which (often) have no
@@ -88,6 +90,10 @@ module PluginAWeek #:nodoc:
   module ActsAsEnumeration #:nodoc:
     def self.included(base) #:nodoc:
       base.class_eval do
+        # Tracks which attributes represent enumerations
+        class_inheritable_accessor :enumeration_associations
+        self.enumeration_associations = {}
+        
         extend PluginAWeek::ActsAsEnumeration::MacroMethods
       end
     end
@@ -413,6 +419,11 @@ module PluginAWeek #:nodoc:
         list.any? {|item| self === item}
       end
       
+      # The current value for the enumeration attribute
+      def enumeration_value
+        send("#{enumeration_attribute}")
+      end
+      
       # Stringifies the enumeration attributes
       def to_s
         to_str
@@ -430,11 +441,6 @@ module PluginAWeek #:nodoc:
           readonly!
           add_to_cache
           id
-        end
-        
-        # The current value for the enumeration attribute
-        def enumeration_value
-          send("#{enumeration_attribute}")
         end
         
         # Allow id to be assigned via ActiveRecord::Base#attributes=

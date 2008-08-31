@@ -40,6 +40,11 @@ class ModelWithBelongsToAssociationTest < Test::Unit::TestCase
     assert_nil @car.color
   end
   
+  def test_should_track_associations
+    expected = {'color_id' => 'color', 'manufacturer_id' => 'manufacturer'}
+    assert_equal expected, Car.enumeration_associations
+  end
+  
   def teardown
     Color.destroy_all
   end

@@ -1,5 +1,7 @@
 == master
 
+* Add support for serialization in JSON/XML
+
 == 0.2.3 / 2008-06-29
 
 * Fix named scope for enumerations that belong_to other enumerations
