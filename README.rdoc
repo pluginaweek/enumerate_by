@@ -38,8 +38,8 @@ it would always be stored in the database with the integer value of 1.
 
 In addition, remember that your enumerations act almost exactly like regular
 ActiveRecord models.  This means that you can define validations, enumerations,
-etc.  There is limited support for advanced finder options, address by the
-acts_as_enumeration_in_memory plugin discussed later on.
+etc.  There is limited support for advanced finder options, addressed by the
+in_memory branch discussed later on.
 
 == Usage
 
@@ -118,11 +118,10 @@ acts_as_enumeration_in_memory plugin discussed later on.
 
 == Future development
 
-See acts_as_enumeration_in_memory[http://github.com/pluginaweek/acts_as_enumeration_in_memory]
-for more information about the future development of this plugin in terms of
-ease of maintenance and utilization of ActiveRecord.  acts_as_enumeration_in_memory
-is an experimental re-implementation of this plugin using an in-memory SQLite3
-database.
+See the in_memory[http://github.com/pluginaweek/acts_as_enumeration/tree/in_memory] branch
+for for an experimental re-implementation of this plugin.  That branch uses an
+in-memory SQLite3 database for managing enumerations and helps ease maintenance
+of the implementation, while allow the full utilization of ActiveRecord.
 
 == Testing
 
