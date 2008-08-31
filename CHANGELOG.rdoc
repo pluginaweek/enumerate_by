@@ -1,5 +1,7 @@
 == master
 
+== 0.2.4 / 2008-08-31
+
 * Add support for serialization in JSON/XML
 
 == 0.2.3 / 2008-06-29
