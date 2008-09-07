@@ -116,6 +116,37 @@ in_memory branch discussed later on.
   car = Car.create(:color => 'red')
   car.color = 'blue'
 
+=== Camelcase/underscore lookups
+
+If you want to look up enumeration records by the underscore equivalent of its
+camelcased name, the following technique should be used:
+
+  class CreditCardType < ActiveRecord::Base
+    acts_as_enumeration
+    
+    column :display_name
+    
+    def initialize(attributes = nil) #:nodoc:
+      super
+      self.name = default_name unless attributes && attributes.include?(:name)
+    end
+    
+    private
+      def default_name
+        display_name.gsub(/[^A-Za-z0-9-]/, '').underscore
+      end
+    
+    create :id => 1, :display_name => 'Visa'
+    create :id => 2, :display_name => 'Mastercard'
+    create :id => 3, :display_name => 'American Express', :name => 'amex'
+    create :id => 4, :display_name => 'Discover'
+  end
+
+Rather than relying on the plugin to do the conversion, this technique gives you
+more control over the exact values that can be used for looking up enumerations.
+Note that this could be simplified even further using the
+active_record_defaults[http://svn.viney.net.nz/things/rails/plugins/active_record_defaults] plugin.
+
 == Future development
 
 See the in_memory[http://github.com/pluginaweek/acts_as_enumeration/tree/in_memory] branch
