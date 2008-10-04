@@ -284,6 +284,10 @@ class EnumerationAfterBeingCreatedTest < Test::Unit::TestCase
     assert @red == 'red'
   end
   
+  def test_should_raise_exception_if_compared_with_an_invalid_name
+    assert_raise(ActiveRecord::RecordNotFound) {@red == 'invalid'}
+  end
+  
   def test_should_have_enumeration_value
     assert_equal 'red', @red.enumeration_value
   end

@@ -406,7 +406,7 @@ module PluginAWeek #:nodoc:
       def ==(arg)
         case arg
         when String, Fixnum, Symbol
-          self == self.class.find_by_any(arg)
+          self == self.class[arg]
         else
           super
         end
