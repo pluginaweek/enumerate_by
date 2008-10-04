@@ -88,17 +88,15 @@ module PluginAWeek #:nodoc:
   # 
   #   Book['Blink']   # => #<Book id: 1, title: "Blink", author: "Malcolm Gladwell", num_pages: 277>
   module ActsAsEnumeration #:nodoc:
-    def self.included(base) #:nodoc:
-      base.class_eval do
-        # Tracks which attributes represent enumerations
-        class_inheritable_accessor :enumeration_associations
-        self.enumeration_associations = {}
-        
-        extend PluginAWeek::ActsAsEnumeration::MacroMethods
-      end
-    end
-    
     module MacroMethods
+      def self.extended(base) #:nodoc:
+        base.class_eval do
+          # Tracks which attributes represent enumerations
+          class_inheritable_accessor :enumeration_associations
+          self.enumeration_associations = {}
+        end
+      end
+      
       # Indicates that this class should be representative of an enumeration.
       # 
       # The default attribute used to reference a unique identifier is +name+.
@@ -468,5 +466,5 @@ module PluginAWeek #:nodoc:
 end
 
 ActiveRecord::Base.class_eval do
-  include PluginAWeek::ActsAsEnumeration
+  extend PluginAWeek::ActsAsEnumeration::MacroMethods
 end

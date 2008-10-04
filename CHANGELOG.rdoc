@@ -1,5 +1,7 @@
 == master
 
+* Change how the base module is included to prevent namespacing conflicts
+
 == 0.2.4 / 2008-08-31
 
 * Add support for serialization in JSON/XML
