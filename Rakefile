@@ -5,7 +5,7 @@ require 'rake/contrib/sshpublisher'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'acts_as_enumeration'
-  s.version           = '0.2.4'
+  s.version           = '0.2.5'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Adds support for declaring an ActiveRecord class as an enumeration'
   

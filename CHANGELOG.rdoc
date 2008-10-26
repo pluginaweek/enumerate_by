@@ -1,5 +1,7 @@
 == master
 
+== 0.2.5 / 2008-10-26
+
 * Fix non-ActiveRecord associations (e.g. ActiveResource) failing
 * Fix reloading of associations not working
 * Raise an exception if equality is performed with an invalid enumeration identifier
