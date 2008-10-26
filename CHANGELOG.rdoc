@@ -1,5 +1,7 @@
 == master
 
+* Fix non-ActiveRecord associations (e.g. ActiveResource) failing
+* Fix reloading of associations not working
 * Raise an exception if equality is performed with an invalid enumeration identifier
 * Change how the base module is included to prevent namespacing conflicts
 

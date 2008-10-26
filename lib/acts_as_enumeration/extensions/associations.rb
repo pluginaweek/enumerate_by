@@ -72,14 +72,14 @@ module PluginAWeek #:nodoc:
           reflection = reflections[association_id.to_sym]
           name = reflection.name
           
-          define_method("#{name}_with_enumerations") do
+          define_method("#{name}_with_enumerations") do |*args|
             klass = reflection.klass
             
             # If we're looking up an enumeration class, then use its finder
-            if klass.enumeration?
+            if klass < ActiveRecord::Base && klass.enumeration?
               klass.send("find_all_by_#{reflection.primary_key_name}", send(self.class.primary_key))
             else
-              value = send("#{name}_without_enumerations")
+              value = send("#{name}_without_enumerations", *args)
               instance_variable_set("@#{name}", nil) if self.class.enumeration? # Get rid of the cached value
               value
             end
@@ -94,14 +94,14 @@ module PluginAWeek #:nodoc:
           reflection = reflections[association_id.to_sym]
           name = reflection.name
           
-          define_method("#{name}_with_enumerations") do
+          define_method("#{name}_with_enumerations") do |*args|
             klass = reflection.klass
             
             # If we're looking up an enumeration class, then use its finder
-            if klass.enumeration?
+            if klass < ActiveRecord::Base && klass.enumeration?
               klass.send("find_by_#{reflection.primary_key_name}", send(self.class.primary_key))
             else
-              value = send("#{name}_without_enumerations")
+              value = send("#{name}_without_enumerations", *args)
               instance_variable_set("@#{name}", nil) if self.class.enumeration? # Get rid of the cached value
               value
             end
@@ -116,7 +116,7 @@ module PluginAWeek #:nodoc:
           # Override accessor if class is already defined
           reflection = reflections[association_id.to_sym]
           
-          if !reflection.options[:polymorphic] && reflection.klass.enumeration?
+          if !reflection.options[:polymorphic] && (reflection.klass < ActiveRecord::Base) && reflection.klass.enumeration?
             name = reflection.name
             primary_key_name = reflection.primary_key_name
             class_name = reflection.class_name
