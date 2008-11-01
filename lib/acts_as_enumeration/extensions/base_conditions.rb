@@ -39,21 +39,23 @@ module PluginAWeek #:nodoc:
           attributes
         end
         
-        # Add support for the conditions hash for conditions
+        # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
         def sanitize_sql_hash_for_conditions_with_enumerations(attrs)
           replace_enumeration_values_in_hash(attrs)
           sanitize_sql_hash_for_conditions_without_enumerations(attrs)
         end
         
-        # Add support for the conditions hash for assignment
+        # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
         def sanitize_sql_hash_for_assignment_with_enumerations(attrs)
-          replace_enumeration_values_in_hash(attrs)
+          replace_enumeration_values_in_hash(attrs, false)
           sanitize_sql_hash_for_assignment_without_enumerations(attrs)
         end
         
-        def replace_enumeration_values_in_hash(attrs) #:nodoc:
+        # Finds all of the attributes that are enumerations are replaces them
+        # with the correct enumeration identifier
+        def replace_enumeration_values_in_hash(attrs, allow_multiple = true) #:nodoc:
           attrs.each do |attr, value|
-            primary_key_name, value = enumeration_value_for(attr, value)
+            primary_key_name, value = enumeration_value_for(attr, value, allow_multiple)
             if value
               attrs.delete(attr)
               attrs[primary_key_name] = value
@@ -72,10 +74,10 @@ module PluginAWeek #:nodoc:
         
         # Find the actual enumeration value and class for the given association
         # name
-        def enumeration_value_for(name, value)
+        def enumeration_value_for(name, value, allow_multiple = true)
           if (reflection = reflect_on_association(name.to_sym)) && reflection.klass.enumeration?
             klass = reflection.klass
-            return reflection.primary_key_name, klass[value]
+            [reflection.primary_key_name, (allow_multiple && value.is_a?(Array)) ? value.map {|value| klass[value]} : klass[value]]
           end
         end
         

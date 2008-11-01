@@ -1,5 +1,7 @@
 == master
 
+* Add support for multiple enumeration values in finder conditions, e.g. Car.find_all_by_color(%w(red blue))
+
 == 0.2.5 / 2008-10-26
 
 * Fix non-ActiveRecord associations (e.g. ActiveResource) failing
