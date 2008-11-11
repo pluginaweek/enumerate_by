@@ -393,6 +393,29 @@ class EnumerationWithCustomAttributesTest < Test::Unit::TestCase
   end
 end
 
+class EnumerationSerializationTest < Test::Unit::TestCase
+  def setup
+    create_color(:id => 1, :name => 'red')
+    create_color(:id => 2, :name => 'green')
+  end
+  
+  def test_should_be_able_to_convert_all_to_json
+    assert_equal '[{"name": "red", "id": 1}, {"name": "green", "id": 2}]', Color.find(:all).to_json
+  end
+  
+  def test_should_be_able_to_convert_multiple_ids_to_json
+    assert_equal '[{"name": "red", "id": 1}, {"name": "green", "id": 2}]', Color.find(1, 2).to_json
+  end
+  
+  def test_should_be_able_to_convert_filtered_collection_to_json
+    assert_equal '[{"name": "red", "id": 1}]', Color.find_all_by_name('red').to_json
+  end
+  
+  def teardown
+    Color.destroy_all
+  end
+end
+
 class ModelWithoutEnumerationTest < Test::Unit::TestCase
   def test_should_not_be_an_enumeration
     assert !Car.enumeration?

@@ -1,3 +1,4 @@
+require 'acts_as_enumeration/collection'
 require 'acts_as_enumeration/extensions/associations'
 require 'acts_as_enumeration/extensions/base_conditions'
 require 'acts_as_enumeration/extensions/serializer'
@@ -207,7 +208,7 @@ module PluginAWeek #:nodoc:
       # until the cache is reset either manually or automatically when the
       # model chanages.
       def find_every(options) #:nodoc:
-        @all ||= (identifiers || []).dup
+        @all ||= Collection.new(identifiers || [])
         @all.dup
       end
       
@@ -224,7 +225,7 @@ module PluginAWeek #:nodoc:
       def find_some(ids, options) #:nodoc:
         result = ids.map {|id| find_by_id(id)}.compact
         if result.size == ids.size
-          result
+          Collection.new(result)
         else
           raise ActiveRecord::RecordNotFound, "Couldn't find all #{name.pluralize} with IDs (#{ids.join(',')})"
         end
@@ -331,7 +332,7 @@ module PluginAWeek #:nodoc:
           if records = @all_by[column.name][value]
             records.send(operation, record)
           elsif operation == :push
-            @all_by[column.name][value] = [record]
+            @all_by[column.name][value] = Collection.new([record])
           end
         end
       end
