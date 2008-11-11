@@ -315,9 +315,9 @@ module PluginAWeek #:nodoc:
         true
       end
       
-      # Updates the cache based on the operation being performed. We prefer to
-      # update the cache rather than reset for performance reasons.  The valid
-      # types of operations are:
+      # Updates the cache based on the operation being performed. Updating the
+      # cache rather than resetting it is preferred for performance reasons.
+      # The valid types of operations are:
       # * +push+ - Adds the record to the cache
       # * +delete+ - Deletes the record from the cache
       def update_cache(operation, record)
