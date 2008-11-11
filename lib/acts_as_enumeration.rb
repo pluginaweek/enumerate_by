@@ -88,7 +88,7 @@ module PluginAWeek #:nodoc:
   # These attributes are exactly like normal ActiveRecord attributes:
   # 
   #   Book['Blink']   # => #<Book id: 1, title: "Blink", author: "Malcolm Gladwell", num_pages: 277>
-  module ActsAsEnumeration #:nodoc:
+  module ActsAsEnumeration
     module MacroMethods
       def self.extended(base) #:nodoc:
         base.class_eval do
