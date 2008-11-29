@@ -1,5 +1,7 @@
 == master
 
+== 0.2.6 / 2008-11-29
+
 * Fix enumeration collections not being able to convert to JSON
 * Add support for multiple enumeration values in finder conditions, e.g. Car.find_all_by_color(%w(red blue))
 
