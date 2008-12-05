@@ -34,13 +34,13 @@ class EnumerationTest < Test::Unit::TestCase
   def test_should_require_an_id
     color = new_color(:id => nil)
     assert !color.valid?
-    assert_equal 1, Array(color.errors.on(:id)).size
+    assert color.errors.invalid?(:id)
   end
   
   def test_should_require_a_name
     color = new_color(:name => nil)
     assert !color.valid?
-    assert_equal 1, Array(color.errors.on(:name)).size
+    assert color.errors.invalid?(:name)
   end
   
   def test_should_require_a_unique_name
@@ -48,7 +48,7 @@ class EnumerationTest < Test::Unit::TestCase
     
     second_color = new_color(:name => 'red')
     assert !second_color.valid?
-    assert_equal 1, Array(second_color.errors.on(:name)).size
+    assert second_color.errors.invalid?(:name)
   end
   
   def teardown
@@ -353,7 +353,7 @@ class EnumerationWithCustomAttributesTest < Test::Unit::TestCase
   def test_should_require_a_title
     book = new_book(:title => nil)
     assert !book.valid?
-    assert_equal 1, Array(book.errors.on(:title)).size
+    assert book.errors.invalid?(:title)
   end
   
   def test_should_allow_finding_all_by_title_with_symbol
