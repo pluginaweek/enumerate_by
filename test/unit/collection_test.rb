@@ -4,7 +4,7 @@ class CollectionTest < Test::Unit::TestCase
   def setup
     red = create_color(:id => 1, :name => 'red')
     blue = create_color(:id => 2, :name => 'green')
-    @collection = PluginAWeek::ActsAsEnumeration::Collection.new([red, blue])
+    @collection = ActsAsEnumeration::Collection.new([red, blue])
   end
   
   def test_should_be_able_to_convert_to_json

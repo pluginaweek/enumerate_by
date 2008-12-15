@@ -1,5 +1,7 @@
 == master
 
+* Remove the PluginAWeek namespace
+
 == 0.2.6 / 2008-11-29
 
 * Fix enumeration collections not being able to convert to JSON
