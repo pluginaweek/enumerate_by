@@ -33,58 +33,16 @@ module Factory
     record
   end
   
-  build Ambassador do |attributes|
-    attributes.reverse_merge!(
-      :country => 'United States',
-      :name => 'John Smith'
-    )
-  end
-  
-  build Book do |attributes|
-    attributes.reverse_merge!(
-      :id => 1,
-      :title => 'Blink'
-    )
-  end
-  
   build Car do |attributes|
+    attributes[:color] = create_color unless attributes.include?(:color)
     attributes.reverse_merge!(
-      :name => 'Ford Mustang',
-      :color_id => 1
+      :name => 'Ford Mustang'
     )
   end
   
   build Color do |attributes|
     attributes.reverse_merge!(
-      :id => 1,
       :name => 'red'
-    )
-  end
-  
-  build Country do |attributes|
-    attributes.reverse_merge!(
-      :id => 1,
-      :name => 'United States'
-    )
-  end
-  
-  build Language do |attributes|
-    attributes[:country] = create_country unless attributes.include?(:country)
-    attributes.reverse_merge!(
-      :id => 1,
-      :name => 'English'
-    )
-  end
-  
-  build Passenger do |attributes|
-    attributes[:car] = create_car unless attributes.include?(:car)
-  end
-  
-  build Region do |attributes|
-    attributes[:country] = create_country unless attributes.include?(:country)
-    attributes.reverse_merge!(
-      :id => 1,
-      :name => 'New Jersey'
     )
   end
 end

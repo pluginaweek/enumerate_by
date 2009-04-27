@@ -1,63 +1,57 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class SerializerByDefaultTest < Test::Unit::TestCase
+class SerializerByDefaultTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @serializer = ActiveRecord::Serialization::Serializer.new(@car)
   end
   
   def test_should_include_enumerations_in_serializable_attribute_names
-    assert_equal %w(color id manufacturer name), @serializer.serializable_attribute_names
+    assert_equal %w(color feature_id feature_type id name), @serializer.serializable_attribute_names
   end
   
   def test_should_typecast_serializable_record
     expected = {
       'color' => 'red',
+      'feature_id' => nil,
+      'feature_type' => nil,
       'id' => @car.id,
-      'manufacturer' => nil,
       'name' => 'Ford Mustang'
     }
     
     assert_equal expected, @serializer.serializable_record
   end
-  
-  def teardown
-    Color.destroy_all
-  end
 end
 
-class SerializerWithoutEnumerationsTest < Test::Unit::TestCase
+class SerializerWithoutEnumerationsTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @serializer = ActiveRecord::Serialization::Serializer.new(@car, :enumerations => false)
   end
   
   def test_should_not_include_enumerations_in_serializable_attribute_names
-    assert_equal %w(color_id id manufacturer_id name), @serializer.serializable_attribute_names
+    assert_equal %w(color_id feature_id feature_type id name), @serializer.serializable_attribute_names
   end
   
   def test_should_not_typecast_serializable_record
     expected = {
-      'color_id' => @color.id,
+      'color_id' => @red.id,
+      'feature_id' => nil,
+      'feature_type' => nil,
       'id' => @car.id,
-      'manufacturer_id' => nil,
       'name' => 'Ford Mustang'
     }
     
     assert_equal expected, @serializer.serializable_record
   end
-  
-  def teardown
-    Color.destroy_all
-  end
 end
 
-class SerializerWithOnlyEnumerationAttributeTest < Test::Unit::TestCase
+class SerializerWithOnlyEnumerationAttributeTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @serializer = ActiveRecord::Serialization::Serializer.new(@car, :only => [:id, :color_id])
   end
   
@@ -67,22 +61,18 @@ class SerializerWithOnlyEnumerationAttributeTest < Test::Unit::TestCase
   
   def test_should_not_typecast_serializable_record
     expected = {
-      'color_id' => @color.id,
+      'color_id' => @red.id,
       'id' => @car.id
     }
     
     assert_equal expected, @serializer.serializable_record
   end
-  
-  def teardown
-    Color.destroy_all
-  end
 end
 
-class SerializerWithOnlyEnumerationAssociationTest < Test::Unit::TestCase
+class SerializerWithOnlyEnumerationAssociationTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @serializer = ActiveRecord::Serialization::Serializer.new(@car, :only => [:color, :id])
   end
   
@@ -98,91 +88,79 @@ class SerializerWithOnlyEnumerationAssociationTest < Test::Unit::TestCase
     
     assert_equal expected, @serializer.serializable_record
   end
-  
-  def teardown
-    Color.destroy_all
-  end
 end
 
-class SerializerWithExceptEnumerationAttributeTest < Test::Unit::TestCase
+class SerializerWithExceptEnumerationAttributeTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @serializer = ActiveRecord::Serialization::Serializer.new(@car, :except => :color_id)
   end
   
   def test_should_not_include_enumeration_in_serializable_attribute_names
-    assert_equal %w(id manufacturer name), @serializer.serializable_attribute_names
+    assert_equal %w(feature_id feature_type id name), @serializer.serializable_attribute_names
   end
   
   def test_should_not_include_enumeration_in_serializable_record
     expected = {
+      'feature_id' => nil,
+      'feature_type' => nil,
       'id' => @car.id,
-      'manufacturer' => nil,
       'name' => 'Ford Mustang'
     }
     
     assert_equal expected, @serializer.serializable_record
   end
-  
-  def teardown
-    Color.destroy_all
-  end
 end
 
-class SerializerWithExceptEnumerationAssociationTest < Test::Unit::TestCase
+class SerializerWithExceptEnumerationAssociationTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @serializer = ActiveRecord::Serialization::Serializer.new(@car, :except => :color)
   end
   
   def test_should_not_include_enumeration_in_serializable_attribute_names
-    assert_equal %w(id manufacturer name), @serializer.serializable_attribute_names
+    assert_equal %w(feature_id feature_type id name), @serializer.serializable_attribute_names
   end
   
   def test_should_not_include_enumeration_in_serializable_record
     expected = {
+      'feature_id' => nil,
+      'feature_type' => nil,
       'id' => @car.id,
-      'manufacturer' => nil,
       'name' => 'Ford Mustang'
     }
     
     assert_equal expected, @serializer.serializable_record
   end
-  
-  def teardown
-    Color.destroy_all
-  end
 end
 
-class SerializerWithIncludeEnumerationTest < Test::Unit::TestCase
+class SerializerWithIncludeEnumerationTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @serializer = ActiveRecord::Serialization::Serializer.new(@car, :include => :color)
   end
   
   def test_should_not_include_enumeration_in_serializable_attribute_names
-    assert_equal %w(color_id id manufacturer name), @serializer.serializable_attribute_names
+    assert_equal %w(color_id feature_id feature_type id name), @serializer.serializable_attribute_names
   end
   
   def test_should_include_entire_enumeration_in_serializable_record
     expected = {
       :color => {
-        'id' => @color.id,
+        'html' => nil,
+        'id' => @red.id,
         'name' => 'red'
       },
-      'color_id' => @color.id,
+      'color_id' => @red.id,
+      'feature_id' => nil,
+      'feature_type' => nil,
       'id' => @car.id,
-      'manufacturer' => nil,
       'name' => 'Ford Mustang'
     }
     
     assert_equal expected, @serializer.serializable_record
-  end
-  
-  def teardown
-    Color.destroy_all
   end
 end

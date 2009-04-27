@@ -1,25 +1,25 @@
-= acts_as_enumeration
+= enumerate_by
 
-+acts_as_enumeration+ adds support for declaring an ActiveRecord class as an
++enumerate_by+ adds support for declaring an ActiveRecord class as an
 enumeration.
 
 == Resources
 
 API
 
-* http://api.pluginaweek.org/acts_as_enumeration
+* http://api.pluginaweek.org/enumerate_by
 
 Bugs
 
-* http://pluginaweek.lighthouseapp.com/projects/13265-acts_as_enumeration
+* http://pluginaweek.lighthouseapp.com/projects/13265-enumerate_by
 
 Development
 
-* http://github.com/pluginaweek/acts_as_enumeration
+* http://github.com/pluginaweek/enumerate_by
 
 Source
 
-* git://github.com/pluginaweek/acts_as_enumeration.git
+* git://github.com/pluginaweek/enumerate_by.git
 
 == Description
 
@@ -28,131 +28,80 @@ example, MySQL has native support for the enum data type.  However, there is
 no native Rails support for defining enumerations and the associations between
 it and other models in the application.
 
-acts_as_enumeration adds support for enumerations in Rails by providing methods
-for interacting with records in a table as if they were values in an
-enumeration.  The important thing to remember about this plugin is that you
-always use the enumeration attributes within the application and know that the
-enumeration ids are stored in the database.  This means that you would use 'red'
-everywhere in your code when referencing the 'red' enumeration identifier, but
-it would always be stored in the database with the integer value of 1.
+In addition, enumerations may often have more complex data and/or functionality
+associated with it that cannot simply be describe in a single column.
 
-In addition, remember that your enumerations act almost exactly like regular
-ActiveRecord models.  This means that you can define validations, enumerations,
-etc.  There is limited support for advanced finder options, addressed by the
-in_memory branch discussed later on.
+enumerate_by adds support for pseudo-enumerations in Rails by allowing the
+enumeration's records to be defined in code, but continuing to express the
+relationship between an enumeration and other models using ActiveRecord
+associations.  The important thing to remember, however, is that while the
+associations exist, the enumerator is always used outside of the application,
+while either the enumerator or the enumerator's record would be referenced
+*within* the application.  This means that you would reference a Color record
+via it's enumerator (such as "red") everywhere in the code (conditions,
+assigning associations, forms, etc.), but it would always be stored in the
+database as a true association with the integer value of 1.
 
 == Usage
 
-=== Default enumeration
-
   class Color < ActiveRecord::Base
-    acts_as_enumeration
-    
-    create :id => 1, :name => 'red'
-    create :id => 2, :name => 'blue'
-    create :id => 3, :name => 'green'
-  end
-
-=== Customized enumeration
-
-  class Book < ActiveRecord::Base
-    acts_as_enumeration :title
-    
-    create :id => 1, :title => 'Blink'
-  end
-
-=== Additional enumeration attributes
-
-  class Book < ActiveRecord::Base
-    acts_as_enumeration :title
-    
-    column :author, :string
-    column :num_pages, :integer
-    
-    validates_presence_of :author
-    validates_presence_of :num_pages
-    
-    create :id => 1, :title => 'Blink', :author => 'Malcolm Gladwell', :num_pages => 277
-  end
-
-=== Associations
-
-  class ColorGroup < ActiveRecord::Base
-    acts_as_enumeration
-    
-    has_many :colors, :foreign_key => 'group_id'
-    
-    create :id => 1, :name => 'RGB'
-    create :id => 2, :name => 'CMYK'
-  end
-  
-  class Color < ActiveRecord::Base
-    acts_as_enumeration
-    
-    column :group_id, :integer
+    enumerate_by :name
     
     belongs_to :group, :class_name => 'ColorGroup'
     has_many :cars
+    
+    bootstrap(
+      {:id => 1, :name => 'red', :group => 'RGB'},
+      {:id => 2, :name => 'blue', :group => 'RGB'},
+      {:id => 3, :name => 'green', :group => 'RGB'},
+      {:id => 4, :name => 'cyan', :group => 'CMYK'}
+    )
   end
-
+  
+  class ColorGroup < ActiveRecord::Base
+    enumerate_by :name
+    
+    has_many :colors, :foreign_key => 'group_id'
+    
+    bootstrap(
+      {:id => 1, :name => 'RGB'},
+      {:id => 2, :name => 'CMYK'}
+    )
+  end
+  
   class Car < ActiveRecord::Base
     belongs_to :color
   end
 
-=== Setting enumeration attributes
+Each of the above models is backed by the database with its own table.  Both
+the Color and ColorGroup enumerations automatically synchronize with the
+records in the database based on what's define in their bootstrap data.
 
-  class Color < ActiveRecord::Base
-    acts_as_enumeration
-    
-    create :id => 1, :name => 'red'
-    create :id => 2, :name => 'blue'
-    create :id => 3, :name => 'green'
-  end
+The enumerations and their associations can be then be used like so:
+
+  car = Car.create(:color => 'red')   # => #<Car id: 1, color_id: 1>
+  car.color                           # => #<Color id: 1, name: "red">
+  car.color == 'red'                  # => true
+  car.color.name                      # => "red"
   
-  class Car < ActiveRecord::Base
-    belongs_to :car
-  end
-  
-  car = Car.create(:color => 'red')
   car.color = 'blue'
+  car.save                            # => true
+  car                                 # => #<Car id: 1, color_id: 2>
+  
+  # Serialization
+  car.to_json                         # => "{id: 1, color: \"blue\"}"
+  car.to_xml                          # => "<car><id type=\"integer\">1</id><color>blue</color></car>"
+  
+  # Lookup
+  Car.with_color('blue')              # => [#<Car id: 1, color_id: 2>]
+  car = Car.find_by_color('blue')     # => #<Car id: 1, color_id: 2>
+  car.color == Color['blue']          # => true
 
-=== Camelcase/underscore lookups
-
-If you want to look up enumeration records by the underscore equivalent of its
-camelcased name, the following technique should be used:
-
-  class CreditCardType < ActiveRecord::Base
-    acts_as_enumeration
-    
-    column :display_name
-    
-    def initialize(attributes = nil) #:nodoc:
-      super
-      self.name = default_name unless attributes && attributes.include?(:name)
-    end
-    
-    private
-      def default_name
-        display_name.gsub(/[^A-Za-z0-9-]/, '').underscore
-      end
-    
-    create :id => 1, :display_name => 'Visa'
-    create :id => 2, :display_name => 'Mastercard'
-    create :id => 3, :display_name => 'American Express', :name => 'amex'
-    create :id => 4, :display_name => 'Discover'
-  end
-
-Rather than relying on the plugin to do the conversion, this technique gives you
-more control over the exact values that can be used for looking up enumerations.
-Note that this could be simplified even further using the
-active_record_defaults[http://svn.viney.net.nz/things/rails/plugins/active_record_defaults] plugin.
-
-== Future development
-
-See the in_memory[http://github.com/pluginaweek/acts_as_enumeration/tree/in_memory] branch
-for for an experimental re-implementation of this plugin.  That branch uses an
-in-memory SQLite3 database for managing enumerations and helps ease maintenance
-of the implementation, while allow the full utilization of ActiveRecord.
+As mentioned previously, the important thing to note from the above example is
+that from an external perspective, "color" is simply an attribute on the Car.
+However, it's backed by a more complex association and model that allows Color
+to include advanced functionality that would normally not be possible with a
+simple attribute.
 
 == Testing
 
@@ -166,7 +115,3 @@ To run against a specific version of Rails:
 == Dependencies
 
 * Rails 2.1 or later
-
-== References
-
-* Trevor Squires - enumerations_mixin[http://svn.protocool.com/public/plugins/enumerations_mixin]

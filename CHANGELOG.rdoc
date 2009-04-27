@@ -1,5 +1,11 @@
 == master
 
+* Automatically trigger in-memory caching of the enumeration's table when bootstrapping
+* Add #bootstrap for automatically synchronizing the records in an enumeration's table
+* Improve serialization performance
+* No longer use tableless models
+* Re-brand under the enumerate_by name
+
 == 0.3.0 / 2008-12-14
 
 * Remove the PluginAWeek namespace

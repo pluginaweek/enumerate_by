@@ -1,3 +1,3 @@
 class Color < ActiveRecord::Base
-  acts_as_enumeration
+  enumerate_by :name
 end

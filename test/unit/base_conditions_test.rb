@@ -1,11 +1,11 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class EnumerationWithFinderConditionsTest < Test::Unit::TestCase
+class EnumerationWithFinderConditionsTest < ActiveRecord::TestCase
   def setup
-    @red = create_color(:id => 1, :name => 'red')
-    @blue = create_color(:id => 2, :name => 'blue')
-    @red_car = create_car(:name => 'Ford Mustang', :color_id => 1)
-    @blue_car = create_car(:name => 'Ford Mustang', :color_id => 2)
+    @red = create_color(:name => 'red')
+    @blue = create_color(:name => 'blue')
+    @red_car = create_car(:name => 'Ford Mustang', :color => @red)
+    @blue_car = create_car(:name => 'Ford Mustang', :color => @blue)
   end
   
   def test_should_replace_enumerations_in_dynamic_finders
@@ -17,36 +17,30 @@ class EnumerationWithFinderConditionsTest < Test::Unit::TestCase
   end
   
   def test_should_replace_enumerations_in_find_conditions
-    assert_equal @red_car, Car.find(:first, :conditions => {:color => 'red'})
+    assert_equal @red_car, Car.first(:conditions => {:color => 'red'})
   end
   
   def test_should_replace_multiple_enumerations_in_find_conditions
-    assert_equal [@red_car, @blue_car], Car.find(:all, :conditions => {:color => %w(red blue)})
-  end
-  
-  def teardown
-    Color.destroy_all
+    assert_equal [@red_car, @blue_car], Car.all(:conditions => {:color => %w(red blue)})
   end
 end
 
-class EnumerationWithFinderUpdatesTest < Test::Unit::TestCase
+class EnumerationWithFinderUpdatesTest < ActiveRecord::TestCase
   def setup
-    @red = create_color(:id => 1, :name => 'red')
-    @blue = create_color(:id => 2, :name => 'blue')
-    @red_car = create_car(:name => 'Ford Mustang', :color_id => 1)
+    @red = create_color(:name => 'red')
+    @blue = create_color(:name => 'blue')
+    @red_car = create_car(:name => 'Ford Mustang', :color => @red)
   end
   
   def test_should_replace_enumerations_in_update_conditions
     Car.update_all({:color => 'blue'}, :name => 'Ford Mustang')
     @red_car.reload
-    assert_equal 'blue', @red_car.color
+    assert_equal @blue, @red_car.color
   end
   
   def test_should_not_replace_multiple_enumerations_in_update_conditions
-    assert_raise(ActiveRecord::RecordNotFound) {Car.update_all({:color => %w(red blue)}, :name => 'Ford Mustang')}
-  end
-  
-  def teardown
-    Color.destroy_all
+    Car.update_all({:color => %w(red blue)}, :name => 'Ford Mustang')
+    @red_car.reload
+    assert_equal @red, @red_car.color
   end
 end

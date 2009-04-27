@@ -1,9 +1,9 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
-class XmlSerializerAttributeWithEnumerationTest < Test::Unit::TestCase
+class XmlSerializerAttributeWithEnumerationTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @attribute = ActiveRecord::XmlSerializer::Attribute.new('color', @car)
   end
   
@@ -11,39 +11,31 @@ class XmlSerializerAttributeWithEnumerationTest < Test::Unit::TestCase
     assert_equal :string, @attribute.type
   end
   
-  def test_should_use_enumeration_value
+  def test_should_use_enumerator
     assert_equal 'red', @attribute.value
-  end
-  
-  def teardown
-    Color.destroy_all
   end
 end
 
-class XmlSerializerAttributeWithNilEnumerationTest < Test::Unit::TestCase
+class XmlSerializerAttributeWithNilEnumerationTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
-    @attribute = ActiveRecord::XmlSerializer::Attribute.new('manufacturer', @car)
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => nil)
+    @attribute = ActiveRecord::XmlSerializer::Attribute.new('color', @car)
   end
   
   def test_should_have_a_string_type
     assert_equal :string, @attribute.type
   end
   
-  def test_should_use_enumeration_value
+  def test_should_use_nil
     assert_nil @attribute.value
-  end
-  
-  def teardown
-    Color.destroy_all
   end
 end
 
-class XmlSerializerAttributeWithoutEnumerationTest < Test::Unit::TestCase
+class XmlSerializerAttributeWithoutEnumerationTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
     @attribute = ActiveRecord::XmlSerializer::Attribute.new('id', @car)
   end
   
@@ -54,16 +46,12 @@ class XmlSerializerAttributeWithoutEnumerationTest < Test::Unit::TestCase
   def test_should_use_attribute_value
     assert_equal @car.id, @attribute.value
   end
-  
-  def teardown
-    Color.destroy_all
-  end
 end
 
-class XmlSerializerTest < Test::Unit::TestCase
+class XmlSerializerTest < ActiveRecord::TestCase
   def setup
-    @color = create_color(:name => 'red')
-    @car = create_car(:name => 'Ford Mustang', :color => 'red')
+    @red = create_color(:name => 'red')
+    @car = create_car(:name => 'Ford Mustang', :color => @red)
   end
   
   def test_should_be_able_to_convert_to_xml
@@ -71,16 +59,13 @@ class XmlSerializerTest < Test::Unit::TestCase
 <?xml version="1.0" encoding="UTF-8"?>
 <car>
   <color>red</color>
+  <feature-id type="integer" nil="true"></feature-id>
+  <feature-type nil="true"></feature-type>
   <id type="integer">#{@car.id}</id>
-  <manufacturer nil="true"></manufacturer>
   <name>Ford Mustang</name>
 </car>
     eos
     
     assert_equal expected, @car.to_xml
-  end
-  
-  def teardown
-    Color.destroy_all
   end
 end

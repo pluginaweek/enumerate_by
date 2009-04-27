@@ -1,9 +1,9 @@
 class CreateCars < ActiveRecord::Migration
   def self.up
     create_table :cars do |t|
-      t.string :name, :null => false
-      t.integer :color_id, :null => false
-      t.integer :manufacturer_id
+      t.string :name
+      t.references :color
+      t.references :feature, :class_name => 'Color', :polymorphic => true
     end
   end
   
