@@ -166,7 +166,7 @@ module EnumerateBy
     # To avoid raising an exception on invalid enumerators, use +find_all_by_enumerator+.
     def find_all_by_enumerator!(enumerators)
       records = find_all_by_enumerator(enumerators)
-      missing = [enumerators].flatten.select {|enumerator| !records.any? {|record| record.enumerator == enumerator}}
+      missing = [enumerators].flatten - records.map(&:enumerator)
       missing.empty? ? records : raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute}(s) #{missing.map(&:inspect).to_sentence}")
     end
     
