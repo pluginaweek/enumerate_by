@@ -117,20 +117,6 @@ module EnumerateBy
       true
     end
     
-    # Finds the record that is associated with the given enumerator.  If no
-    # record is found, then an ActiveRecord::RecordNotFound exception is
-    # raised.
-    # 
-    # For example,
-    # 
-    #   Color['red']      # => #<Color id: 1, name: "red">
-    #   Color['invalid']  # => ActiveRecord::RecordNotFound: Couldn't find Color with name "red"
-    # 
-    # To avoid raising an exception on invalid enumerators, use +find_by_enumerator+.
-    def [](enumerator)
-      find_by_enumerator(enumerator) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute} #{enumerator.inspect}")
-    end
-    
     # Finds the record that is associated with the given enumerator.  The
     # attribute that defines the enumerator is based on what was specified
     # when calling +enumerate_by+.
@@ -141,6 +127,47 @@ module EnumerateBy
     #   Color.find_by_enumerator('invalid') # => nil
     def find_by_enumerator(enumerator)
       first(:conditions => {enumerator_attribute => enumerator})
+    end
+    
+    # Finds the record that is associated with the given enumerator.  If no
+    # record is found, then an ActiveRecord::RecordNotFound exception is
+    # raised.
+    # 
+    # For example,
+    # 
+    #   Color['red']      # => #<Color id: 1, name: "red">
+    #   Color['invalid']  # => ActiveRecord::RecordNotFound: Couldn't find Color with name "red"
+    # 
+    # To avoid raising an exception on invalid enumerators, use +find_by_enumerator+.
+    def find_by_enumerator!(enumerator)
+      find_by_enumerator(enumerator) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute} #{enumerator.inspect}")
+    end
+    alias_method :[], :find_by_enumerator!
+    
+    # Finds records with the given enumerators.
+    # 
+    # For example,
+    # 
+    #   Color.find_all_by_enumerator('red', 'green')  # => [#<Color id: 1, name: "red">, #<Color id: 1, name: "green">]
+    #   Color.find_all_by_enumerator('invalid')       # => []
+    def find_all_by_enumerator(enumerators)
+      all(:conditions => {enumerator_attribute => enumerators})
+    end
+    
+    # Finds records with the given enumerators.  If no record is found for a
+    # particular enumerator, then an ActiveRecord::RecordNotFound exception
+    # is raised.
+    # 
+    # For Example,
+    # 
+    #   Color.find_all_by_enumerator!('red', 'green')   # => [#<Color id: 1, name: "red">, #<Color id: 1, name: "green">]
+    #   Color.find_all_by_enumerator!('invalid')        # => ActiveRecord::RecordNotFound: Couldn't find Color with name(s) "invalid"
+    # 
+    # To avoid raising an exception on invalid enumerators, use +find_all_by_enumerator+.
+    def find_all_by_enumerator!(enumerators)
+      records = find_all_by_enumerator(enumerators)
+      missing = [enumerators].flatten.select {|enumerator| !records.any? {|record| record.enumerator == enumerator}}
+      missing.empty? ? records : raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute}(s) #{missing.map(&:inspect).to_sentence}")
     end
     
     # Adds support for looking up records from the enumeration cache for
@@ -242,7 +269,7 @@ module EnumerateBy
     # a String, then it is compared against the enumerator.  Otherwise,
     # ActiveRecord's default equality comparator is used.
     def ==(arg)
-      arg.is_a?(String) ? self == self.class[arg] : super
+      arg.is_a?(String) ? self == self.class.find_by_enumerator!(arg) : super
     end
     
     # Determines whether this enumeration is in the given list.

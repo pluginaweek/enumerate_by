@@ -65,14 +65,11 @@ end
 class EnumerationWithRecordsTest < ActiveRecord::TestCase
   def setup
     @red = create_color(:name => 'red')
+    @green = create_color(:name => 'green')
   end
   
   def test_should_index_by_enumerator
     assert_equal @red, Color['red']
-  end
-  
-  def test_should_raise_exception_for_invalid_index
-    assert_raise(ActiveRecord::RecordNotFound) {Color['white']}
   end
   
   def test_should_allow_finding_by_enumerator
@@ -85,6 +82,30 @@ class EnumerationWithRecordsTest < ActiveRecord::TestCase
   
   def test_should_find_nothing_if_finding_by_unknown_enumerator
     assert_nil Color.find_by_enumerator('invalid')
+  end
+  
+  def test_should_raise_exception_for_invalid_index
+    assert_raise(ActiveRecord::RecordNotFound) {Color['white']}
+  end
+  
+  def test_should_allow_finding_all_by_enumerator
+    assert_equal [@red, @green], Color.find_all_by_enumerator(['red', 'green'])
+  end
+  
+  def test_should_allow_finding_all_by_enumerator_with_nil
+    assert_equal [], Color.find_all_by_enumerator(nil)
+  end
+  
+  def test_should_find_nothing_if_finding_all_by_unknown_enumerator
+    assert_equal [], Color.find_all_by_enumerator('invalid')
+  end
+  
+  def test_should_raise_exception_find_finding_all_by_unknown_enumerator!
+    assert_raise(ActiveRecord::RecordNotFound) { Color.find_all_by_enumerator!('invalid') }
+  end
+  
+  def test_should_raise_exception_if_only_some_found_when_finding_all_by_enumerator!
+    assert_raise(ActiveRecord::RecordNotFound) { Color.find_all_by_enumerator!(['red', 'invalid']) }
   end
 end
 
