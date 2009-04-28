@@ -1,5 +1,8 @@
 == master
 
+* Enable caching by default for all enumerations
+* Allow caching to be turned off on an application-wide basis
+* Allow cache store to be configurable
 * Automatically trigger in-memory caching of the enumeration's table when bootstrapping
 * Add #bootstrap for automatically synchronizing the records in an enumeration's table
 * Improve serialization performance

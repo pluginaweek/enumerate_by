@@ -1,5 +1,15 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
+class EnumerateByTest < ActiveRecord::TestCase
+  def test_should_have_a_cache_store
+    assert_instance_of ActiveSupport::Cache::MemoryStore, EnumerateBy.cache_store
+  end
+  
+  def test_should_raise_exception_if_invalid_option_specified
+    assert_raise(ArgumentError) { Color.enumerate_by(:id, :invalid => true) }
+  end
+end
+
 class ModelWithoutEnumerationTest < ActiveRecord::TestCase
   def test_should_not_be_an_enumeration
     assert !Car.enumeration?
@@ -119,6 +129,53 @@ class EnumerationAfterBeingCreatedTest < ActiveRecord::TestCase
   end
 end
 
+class EnumerationWithCachingTest < ActiveRecord::TestCase
+  def setup
+    @red = create_color(:name => 'red')
+    
+    EnumerateBy.perform_caching = true
+  end
+  
+  def test_should_perform_enumerator_caching
+    assert Color.perform_enumerator_caching
+  end
+  
+  def test_should_cache_all_finder_queries
+   assert_queries(1) { Color.find(@red.id) }
+   assert_queries(0) { Color.find(@red.id) }
+   
+   assert_queries(1) { Color.all }
+   assert_queries(0) { Color.all }
+  end
+  
+  def teardown
+    EnumerateBy.perform_caching = false
+  end
+end
+
+class EnumerationWithoutCachingTest < ActiveRecord::TestCase
+  def setup
+    @red = create_color(:name => 'red')
+    
+    EnumerateBy.perform_caching = true
+    @original_perform_caching = Color.perform_enumerator_caching
+    Color.perform_enumerator_caching = false
+  end
+  
+  def test_should_not_cache_finder_queries
+   assert_queries(1) { Color.find(@red.id) }
+   assert_queries(1) { Color.find(@red.id) }
+   
+   assert_queries(1) { Color.all }
+   assert_queries(1) { Color.all }
+  end
+  
+  def teardown
+    EnumerateBy.perform_caching = false
+    Color.perform_enumerator_caching = @original_perform_caching
+  end
+end
+
 class EnumerationBootstrappedTest < ActiveRecord::TestCase
   def setup
     @red, @green = Color.bootstrap(
@@ -142,22 +199,6 @@ class EnumerationBootstrappedTest < ActiveRecord::TestCase
     assert_equal @green, Color.find(2)
     assert_equal 'green', @green.name
   end
-  
-  def test_should_enable_enumerator_cache
-    assert_not_nil Color.enumerator_cache
-  end
-  
-  def test_should_cache_all_finder_queries
-   assert_queries(1) { Color.find(1) }
-   assert_queries(0) { Color.find(1) }
-   
-   assert_queries(1) { Color.all }
-   assert_queries(0) { Color.all }
-  end
-  
-  def teardown
-    Color.enumerator_cache = nil
-  end
 end
 
 class EnumerationBootstrappedWithExistingRecordsTest < ActiveRecord::TestCase
@@ -177,10 +218,6 @@ class EnumerationBootstrappedWithExistingRecordsTest < ActiveRecord::TestCase
   def test_should_synchronize_all_attributes
     assert_equal 'red', @red.name
     assert_equal 'green', @green.name
-  end
-  
-  def teardown
-    Color.enumerator_cache = nil
   end
 end
 
@@ -209,9 +246,5 @@ class EnumerationBootstrappedWithDefaultsTest < ActiveRecord::TestCase
   
   def test_should_update_default_attributes_if_not_defined
     assert_equal '#00ff00', @green.html
-  end
-  
-  def teardown
-    Color.enumerator_cache = nil
   end
 end

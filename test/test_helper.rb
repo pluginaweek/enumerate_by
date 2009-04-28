@@ -24,3 +24,5 @@ ActiveRecord::Base.connection.class.class_eval do
   
   alias_method_chain :execute, :query_record
 end
+
+EnumerateBy.perform_caching = false

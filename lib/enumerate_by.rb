@@ -7,6 +7,15 @@ require 'enumerate_by/extensions/xml_serializer'
 # numerical order.  This extension provides a general technique for using
 # ActiveRecord classes to define enumerations.
 module EnumerateBy
+  # Whether to enable enumeration caching (default is true)
+  mattr_accessor :perform_caching
+  self.perform_caching = true
+  
+  # The cache store to use for queries within enumerations (default is a
+  # memory store)
+  mattr_accessor :cache_store
+  self.cache_store = ActiveSupport::Cache::MemoryStore.new
+  
   module MacroMethods
     def self.extended(base) #:nodoc:
       base.class_eval do
@@ -27,6 +36,10 @@ module EnumerateBy
     # defined for the given attribute since all records must have this value
     # in order to be properly enumerated.
     # 
+    # Configuration options:
+    # * <tt>:cache</tt> - Whether to cache all finder queries for this
+    #   enumeration.  Default is true.
+    # 
     # == Defining enumerators
     # 
     # The enumerators of the class uniquely identify each record in the
@@ -43,9 +56,8 @@ module EnumerateBy
     #   Color['red']    # => #<Color id: 1, name: "red">
     #   Color['green']  # => #<Color id: 2, name: "green">
     # 
-    # When used in association with #bootstrap, these records are cached so
-    # there is no performance hit and the same object can be compared against
-    # itself, i.e. Color['red'] == Color['red']
+    # When caching is enabled, these lookup queries are cached so that there
+    # is no performance hit.
     # 
     # == Associations
     # 
@@ -74,7 +86,10 @@ module EnumerateBy
     #   Car.all(:conditions => {:color => 'red'})
     # 
     # For more information about finders, see EnumerateBy::Extensions::BaseConditions.
-    def enumerate_by(attribute = :name)
+    def enumerate_by(attribute = :name, options = {})
+      options.reverse_merge!(:cache => true)
+      options.assert_valid_keys(:cache)
+      
       extend EnumerateBy::ClassMethods
       include EnumerateBy::InstanceMethods
       
@@ -82,8 +97,9 @@ module EnumerateBy
       cattr_accessor :enumerator_attribute
       self.enumerator_attribute = attribute
       
-      # In-memory cache of database queries for this model
-      cattr_accessor :enumerator_cache
+      # Whether to perform caching of enumerators within finder queries
+      cattr_accessor :perform_enumerator_caching
+      self.perform_enumerator_caching = options[:cache]
       
       validates_presence_of attribute
       validates_uniqueness_of attribute
@@ -96,12 +112,6 @@ module EnumerateBy
   end
   
   module ClassMethods
-    def self.extended(base) #:nodoc:
-      class << base
-        alias_method_chain :find_by_sql, :enumerations
-      end
-    end
-    
     # Does this class define an enumeration?  Always true.
     def enumeration?
       true
@@ -133,17 +143,16 @@ module EnumerateBy
       first(:conditions => {enumerator_attribute => enumerator})
     end
     
-    # Adds support for looking up records from an in-memory process cache for
-    # the model before querying the database.
+    # Adds support for looking up records from the enumeration cache for
+    # before querying the database.
     # 
-    # This allows for models that have been bootstrapped (and, thus, will
-    # never change) to be permanently cached avoiding unnecessary queries to
-    # the database.
-    def find_by_sql_with_enumerations(sql)
-      if enumerator_cache
-        enumerator_cache.fetch(sql) { find_by_sql_without_enumerations(sql) }
+    # This allows for enumerations to permanently cache find queries, avoiding
+    # unnecessary lookups in the database.
+    def find_by_sql(sql)
+      if EnumerateBy.perform_caching && perform_enumerator_caching
+        EnumerateBy.cache_store.fetch(sql) { super }
       else
-        find_by_sql_without_enumerations(sql)
+        super
       end
     end
     
@@ -195,6 +204,10 @@ module EnumerateBy
     # only be synchronized if the attribute is nil in the database.
     # Otherwise, any changes to that column remain there.
     def bootstrap(*records)
+      # Temporarily turn off caching
+      perform_caching = perform_enumerator_caching
+      self.perform_enumerator_caching = false
+      
       # Remove records that are no longer being used
       delete_all(['id NOT IN (?)', records.map {|record| record[:id]}])
       existing = all.inject({}) {|existing, record| existing[record.id] = record; existing}
@@ -217,10 +230,10 @@ module EnumerateBy
         record
       end
       
-      # Enable the query cache
-      self.enumerator_cache = ActiveSupport::Cache::MemoryStore.new
-      
       records
+    ensure
+      # Revert caching back to its original value
+      self.perform_enumerator_caching = perform_caching
     end
   end
   
