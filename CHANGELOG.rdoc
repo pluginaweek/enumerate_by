@@ -1,5 +1,6 @@
 == master
 
+* Allow bootstrapping to be easily added to non-enumerations
 * Cache results for #exists? / #calculate
 * Add the ability to skip the internal cache via Model#uncached
 * Add Model#find_all_by_enumerator

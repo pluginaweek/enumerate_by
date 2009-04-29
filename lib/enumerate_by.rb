@@ -91,6 +91,7 @@ module EnumerateBy
       options.assert_valid_keys(:cache)
       
       extend EnumerateBy::ClassMethods
+      extend EnumerateBy::Bootstrapped
       include EnumerateBy::InstanceMethods
       
       # The attribute representing a record's enumerator
@@ -195,7 +196,9 @@ module EnumerateBy
     ensure
       self.perform_enumerator_caching = old
     end
-    
+  end
+  
+  module Bootstrapped
     # Synchronizes the given records with existing ones.  This ensures that
     # only the correct and most up-to-date records exist in the database.
     # The sync process is as follows:

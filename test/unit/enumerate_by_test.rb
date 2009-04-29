@@ -14,6 +14,19 @@ class ModelWithoutEnumerationTest < ActiveRecord::TestCase
   def test_should_not_be_an_enumeration
     assert !Car.enumeration?
   end
+  
+  def test_should_be_able_to_bootstrap
+    Car.class_eval do
+      extend EnumerateBy::Bootstrapped
+    end
+    
+    Car.bootstrap(
+      {:id => 1, :name => 'Ford Mustang'},
+      {:id => 2, :name => 'Ford Explorer'}
+    )
+    
+    assert_equal 2, Car.count
+  end
 end
 
 class EnumerationByDefaultTest < ActiveRecord::TestCase
