@@ -245,8 +245,9 @@ class EnumerationBootstrappedTest < ActiveRecord::TestCase
     )
   end
   
-  def test_should_raise_exception_if_id_not_specified
-    assert_raise(ActiveRecord::RecordInvalid) { Color.bootstrap({:name => 'red'}, {:name => 'green'}) }
+  def test_should_not_raise_exception_if_id_not_specified
+    assert_nothing_raised { Color.bootstrap({:name => 'red'}, {:name => 'green'}) }
+    assert_equal 2, Color.count
   end
   
   def test_should_raise_exception_if_validation_fails

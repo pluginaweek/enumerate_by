@@ -206,6 +206,10 @@ module EnumerateBy
     # * Existing records with matches are updated based on the given attributes for that record
     # * Records that don't exist are created
     # 
+    # To create records that can be referenced elsewhere in the database, an
+    # id should always be specified.  Otherwise, records may change id each
+    # time they are bootstrapped.
+    # 
     # == Examples
     # 
     #   class Color < ActiveRecord::Base
@@ -265,7 +269,6 @@ module EnumerateBy
           defaults.each {|attribute, value| record[attribute] = value unless record.send("#{attribute}?")} if defaults
           
           # Force failed saves to stop execution
-          raise ActiveRecord::RecordInvalid.new(record) unless record.id
           record.save!
           record
         end
