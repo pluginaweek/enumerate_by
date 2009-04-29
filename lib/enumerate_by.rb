@@ -189,12 +189,11 @@ module EnumerateBy
     # within the context of the given block if the enumeration is configured
     # to allow caching.
     def uncached
-      super do
-        old = perform_enumerator_caching
-        self.perform_enumerator_caching = false
-        yield
-        self.perform_enumerator_caching = old
-      end
+      old = perform_enumerator_caching
+      self.perform_enumerator_caching = false
+      super
+    ensure
+      self.perform_enumerator_caching = old
     end
     
     # Synchronizes the given records with existing ones.  This ensures that
@@ -245,36 +244,31 @@ module EnumerateBy
     # only be synchronized if the attribute is nil in the database.
     # Otherwise, any changes to that column remain there.
     def bootstrap(*records)
-      # Temporarily turn off caching
-      perform_caching = perform_enumerator_caching
-      self.perform_enumerator_caching = false
-      
-      # Remove records that are no longer being used
-      delete_all(['id NOT IN (?)', records.map {|record| record[:id]}])
-      existing = all.inject({}) {|existing, record| existing[record.id] = record; existing}
-      
-      records.map! do |attributes|
-        attributes.symbolize_keys!
-        defaults = attributes.delete(:defaults)
+      uncached do
+        # Remove records that are no longer being used
+        delete_all(['id NOT IN (?)', records.map {|record| record[:id]}])
+        existing = all.inject({}) {|existing, record| existing[record.id] = record; existing}
         
-        # Update with new attributes
-        record = existing[attributes[:id]] || new
-        record.attributes = attributes
-        record.id = attributes[:id]
+        records.map! do |attributes|
+          attributes.symbolize_keys!
+          defaults = attributes.delete(:defaults)
+          
+          # Update with new attributes
+          record = existing[attributes[:id]] || new
+          record.attributes = attributes
+          record.id = attributes[:id]
+          
+          # Only update defaults if they aren't already specified
+          defaults.each {|attribute, value| record[attribute] = value unless record.send("#{attribute}?")} if defaults
+          
+          # Force failed saves to stop execution
+          raise ActiveRecord::RecordInvalid.new(record) unless record.id
+          record.save!
+          record
+        end
         
-        # Only update defaults if they aren't already specified
-        defaults.each {|attribute, value| record[attribute] = value unless record.send("#{attribute}?")} if defaults
-        
-        # Force failed saves to stop execution
-        raise ActiveRecord::RecordInvalid.new(record) unless record.id
-        record.save!
-        record
+        records
       end
-      
-      records
-    ensure
-      # Revert caching back to its original value
-      self.perform_enumerator_caching = perform_caching
     end
   end
   
