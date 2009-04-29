@@ -170,16 +170,30 @@ module EnumerateBy
       missing.empty? ? records : raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute}(s) #{missing.map(&:inspect).to_sentence}")
     end
     
-    # Adds support for looking up records from the enumeration cache for
+    # Adds support for looking up results from the enumeration cache for
     # before querying the database.
     # 
     # This allows for enumerations to permanently cache find queries, avoiding
     # unnecessary lookups in the database.
-    def find_by_sql(sql)
-      if EnumerateBy.perform_caching && perform_enumerator_caching
-        EnumerateBy.cache_store.fetch(sql) { super }
-      else
-        super
+    [:find_by_sql, :exists?, :calculate].each do |method|
+      define_method(method) do |*args|
+        if EnumerateBy.perform_caching && perform_enumerator_caching
+          EnumerateBy.cache_store.fetch([method] + args) { super }
+        else
+          super
+        end
+      end
+    end
+    
+    # Temporarily disables the enumeration cache (as well as the query cache)
+    # within the context of the given block if the enumeration is configured
+    # to allow caching.
+    def uncached
+      super do
+        old = perform_enumerator_caching
+        self.perform_enumerator_caching = false
+        yield
+        self.perform_enumerator_caching = old
       end
     end
     

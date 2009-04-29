@@ -169,6 +169,23 @@ class EnumerationWithCachingTest < ActiveRecord::TestCase
    assert_queries(0) { Color.all }
   end
   
+  def test_should_cache_exist_queries
+    assert_queries(1) { Color.exists?(:name => 'red') }
+    assert_queries(0) { Color.exists?(:name => 'red') }
+  end
+  
+  def test_should_cache_calculate_queries
+    assert_queries(1) { Color.minimum('id') }
+    assert_queries(0) { Color.minimum('id') }
+  end
+  
+  def test_should_skip_cache_when_in_uncached_block
+    Color.uncached do
+     assert_queries(1) { Color.find(@red.id) }
+     assert_queries(1) { Color.find(@red.id) }
+    end
+  end
+  
   def teardown
     EnumerateBy.perform_caching = false
   end
@@ -189,6 +206,16 @@ class EnumerationWithoutCachingTest < ActiveRecord::TestCase
    
    assert_queries(1) { Color.all }
    assert_queries(1) { Color.all }
+  end
+  
+  def test_should_not_cache_exist_queries
+    assert_queries(1) { Color.exists?(:name => 'red') }
+    assert_queries(1) { Color.exists?(:name => 'red') }
+  end
+  
+  def test_should_not_cache_calculate_queries
+    assert_queries(1) { Color.minimum('id') }
+    assert_queries(1) { Color.minimum('id') }
   end
   
   def teardown

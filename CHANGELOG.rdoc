@@ -1,5 +1,7 @@
 == master
 
+* Cache results for #exists? / #calculate
+* Add the ability to skip the internal cache via Model#uncached
 * Add Model#find_all_by_enumerator
 * Don't internally rely on Model#[] being available since it may conflict with other plugins
 * Enable caching by default for all enumerations
