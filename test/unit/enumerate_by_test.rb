@@ -1,10 +1,6 @@
 require File.dirname(__FILE__) + '/../test_helper'
 
 class EnumerateByTest < ActiveRecord::TestCase
-  def test_should_have_a_cache_store
-    assert_instance_of ActiveSupport::Cache::MemoryStore, EnumerateBy.cache_store
-  end
-  
   def test_should_raise_exception_if_invalid_option_specified
     assert_raise(ArgumentError) { Color.enumerate_by(:id, :invalid => true) }
   end
@@ -58,6 +54,14 @@ class EnumerationTest < ActiveRecord::TestCase
   
   def test_should_have_an_enumerator_attribute
     assert_equal :name, Color.enumerator_attribute
+  end
+  
+  def test_should_perform_caching
+    assert Color.perform_enumerator_caching
+  end
+  
+  def test_should_have_a_cache_store
+    assert_instance_of ActiveSupport::Cache::MemoryStore, Color.enumerator_cache_store
   end
   
   def test_should_require_a_name

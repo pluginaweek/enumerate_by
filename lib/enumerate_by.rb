@@ -11,11 +11,6 @@ module EnumerateBy
   mattr_accessor :perform_caching
   self.perform_caching = true
   
-  # The cache store to use for queries within enumerations (default is a
-  # memory store)
-  mattr_accessor :cache_store
-  self.cache_store = ActiveSupport::Cache::MemoryStore.new
-  
   module MacroMethods
     def self.extended(base) #:nodoc:
       base.class_eval do
@@ -102,6 +97,10 @@ module EnumerateBy
       cattr_accessor :perform_enumerator_caching
       self.perform_enumerator_caching = options[:cache]
       
+      # The cache store to use for queries (default is a memory store)
+      cattr_accessor :enumerator_cache_store
+      self.enumerator_cache_store = ActiveSupport::Cache::MemoryStore.new
+      
       validates_presence_of attribute
       validates_uniqueness_of attribute
     end
@@ -179,7 +178,7 @@ module EnumerateBy
     [:find_by_sql, :exists?, :calculate].each do |method|
       define_method(method) do |*args|
         if EnumerateBy.perform_caching && perform_enumerator_caching
-          EnumerateBy.cache_store.fetch([method] + args) { super }
+          enumerator_cache_store.fetch([method] + args) { super }
         else
           super
         end
