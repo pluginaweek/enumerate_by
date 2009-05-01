@@ -280,6 +280,42 @@ module EnumerateBy
         records
       end
     end
+    
+    # Quickly synchronizes the given records with the existing ones.  This
+    # disables certain features of ActiveRecord in order to provide a speed
+    # boost, including:
+    # * Callbacks
+    # * Validations
+    # * Timestamps
+    # * Dirty attributes
+    # 
+    # This produces a noticeable performance increase when bootstrapping more
+    # than several hundred records.
+    # 
+    # See EnumerateBy::Bootstrapped#bootstrap for information about usage.
+    def fast_bootstrap(*records)
+      features = {:callbacks => %w(create create_or_update valid?), :dirty => %w(write_attribute), :validation => %w(save save!)}
+      features.each do |feature, methods|
+        methods.each do |method|
+          method, punctuation = method.sub(/([?!=])$/, ''), $1
+          alias_method "#{method}_without_bootstrap#{punctuation}", "#{method}#{punctuation}"
+          alias_method "#{method}#{punctuation}", "#{method}_without_#{feature}#{punctuation}"
+        end
+      end
+      original_record_timestamps = self.record_timestamps
+      self.record_timestamps = false
+      
+      bootstrap(*records)
+    ensure
+      features.each do |feature, methods|
+        methods.each do |method|
+          method, punctuation = method.sub(/([?!=])$/, ''), $1
+          alias_method "#{method}_without_#{feature}#{punctuation}", "#{method}#{punctuation}"
+          alias_method "#{method}#{punctuation}", "#{method}_without_bootstrap#{punctuation}"
+        end
+      end
+      self.record_timestamps = original_record_timestamps
+    end
   end
   
   module InstanceMethods

@@ -318,3 +318,29 @@ class EnumerationBootstrappedWithDefaultsTest < ActiveRecord::TestCase
     assert_equal '#00ff00', @green.html
   end
 end
+
+class EnumerationFastBootstrappedTest < ActiveRecord::TestCase
+  def test_should_not_run_validations
+    assert_raise(ActiveRecord::StatementInvalid) { Color.fast_bootstrap({:id => 1, :name => nil}) }
+  end
+  
+  def test_should_still_record_timestamps_after_bootstrap
+    Color.fast_bootstrap({:id => 1, :name => 'red'})
+    assert Color.record_timestamps
+  end
+  
+  def test_should_still_run_validations_after_bootstrap
+    Color.fast_bootstrap({:id => 1, :name => 'red'})
+    
+    color = Color.new
+    assert !color.save
+    assert_raise(ActiveRecord::RecordInvalid) { color.save! }
+  end
+  
+  def test_should_still_track_changed_attributes_after_bootstrap
+    Color.fast_bootstrap({:id => 1, :name => 'red'})
+    
+    color = Color.new(:name => 'red')
+    assert color.changed?
+  end
+end

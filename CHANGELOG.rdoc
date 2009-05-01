@@ -1,5 +1,6 @@
 == master
 
+* Add #fast_bootstrap for bootstrapping large numbers of records
 * Don't require an id during bootstrap
 * Allow bootstrapping to be easily added to non-enumerations
 * Cache results for #exists? / #calculate
