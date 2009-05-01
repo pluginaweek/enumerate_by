@@ -253,6 +253,7 @@ module EnumerateBy
     def bootstrap(*records)
       uncached do
         # Remove records that are no longer being used
+        records.flatten!
         delete_all(['id NOT IN (?)', records.map {|record| record[:id]}])
         existing = all.inject({}) {|existing, record| existing[record.id] = record; existing}
         
@@ -261,8 +262,11 @@ module EnumerateBy
           defaults = attributes.delete(:defaults)
           
           # Update with new attributes
-          record = existing[attributes[:id]] || new
-          record.attributes = attributes
+          record = !existing.include?(attributes[:id]) ? new(attributes) : begin
+            record = existing[attributes[:id]]
+            record.attributes = attributes
+            record
+          end
           record.id = attributes[:id]
           
           # Only update defaults if they aren't already specified

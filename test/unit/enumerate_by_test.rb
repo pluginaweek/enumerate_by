@@ -254,6 +254,14 @@ class EnumerationBootstrappedTest < ActiveRecord::TestCase
     assert_raise(ActiveRecord::RecordInvalid) { Color.bootstrap({:id => 1, :name => nil}, {:id => 2, :name => 'green'}) }
   end
   
+  def test_should_flatten_bootstrap_records
+    Color.bootstrap(
+      [{:id => 1, :name => 'red'}],
+      [{:id => 2, :name => 'green'}]
+    )
+    assert_equal 2, Color.count
+  end
+  
   def test_should_create_records
     assert_equal @red, Color.find(1)
     assert_equal 'red', @red.name
