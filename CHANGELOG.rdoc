@@ -1,5 +1,7 @@
 == master
 
+== 0.4.0 / 2009-04-30
+
 * Allow cache to be cleared on a per-enumeration basis
 * Add #fast_bootstrap for bootstrapping large numbers of records
 * Don't require an id during bootstrap
