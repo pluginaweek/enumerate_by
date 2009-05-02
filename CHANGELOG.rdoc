@@ -1,5 +1,7 @@
 == master
 
+== 0.4.1 / 2009-05-01
+
 * Improve #fast_bootstrap speed by 50% by using the connection directly
 
 == 0.4.0 / 2009-04-30
