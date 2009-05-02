@@ -261,15 +261,16 @@ module EnumerateBy
           defaults = attributes.delete(:defaults)
           
           # Update with new attributes
-          record = !existing.include?(attributes[:id]) ? new(attributes) : begin
-            record = existing[attributes[:id]]
-            record.attributes = attributes
-            record
-          end
+          record =
+            if record = existing[attributes[:id]]
+              attributes.merge!(defaults.delete_if {|attribute, value| record.send("#{attribute}?")}) if defaults
+              record.attributes = attributes
+              record
+            else
+              attributes.merge!(defaults) if defaults
+              new(attributes)
+            end
           record.id = attributes[:id]
-          
-          # Only update defaults if they aren't already specified
-          defaults.each {|attribute, value| record[attribute] = value unless record.send("#{attribute}?")} if defaults
           
           # Force failed saves to stop execution
           record.save!
@@ -281,39 +282,63 @@ module EnumerateBy
     end
     
     # Quickly synchronizes the given records with the existing ones.  This
-    # disables certain features of ActiveRecord in order to provide a speed
-    # boost, including:
+    # skips ActiveRecord altogether, interacting directly with the connection
+    # instead.  As a result, certain features are not available when being
+    # bootstrapped, including:
     # * Callbacks
     # * Validations
+    # * Transactions
     # * Timestamps
     # * Dirty attributes
     # 
-    # This produces a noticeable performance increase when bootstrapping more
+    # Also note that records are created directly without creating instances
+    # of the model.  As a result, all of the attributes for the record must
+    # be specified.
+    # 
+    # This produces a significant performance increase when bootstrapping more
     # than several hundred records.
     # 
     # See EnumerateBy::Bootstrapped#bootstrap for information about usage.
     def fast_bootstrap(*records)
-      features = {:callbacks => %w(create create_or_update valid?), :dirty => %w(write_attribute), :validation => %w(save save!)}
-      features.each do |feature, methods|
-        methods.each do |method|
-          method, punctuation = method.sub(/([?!=])$/, ''), $1
-          alias_method "#{method}_without_bootstrap#{punctuation}", "#{method}#{punctuation}"
-          alias_method "#{method}#{punctuation}", "#{method}_without_#{feature}#{punctuation}"
-        end
-      end
-      original_record_timestamps = self.record_timestamps
-      self.record_timestamps = false
+      # Remove records that are no longer being used
+      records.flatten!
+      delete_all(['id NOT IN (?)', records.map {|record| record[:id]}])
       
-      bootstrap(*records)
-    ensure
-      features.each do |feature, methods|
-        methods.each do |method|
-          method, punctuation = method.sub(/([?!=])$/, ''), $1
-          alias_method "#{method}_without_#{feature}#{punctuation}", "#{method}#{punctuation}"
-          alias_method "#{method}#{punctuation}", "#{method}_without_bootstrap#{punctuation}"
+      # Find remaining existing records (to be updated)
+      quoted_table_name = self.quoted_table_name
+      existing = connection.select_all("SELECT * FROM #{quoted_table_name}").inject({}) {|existing, record| existing[record['id'].to_i] = record; existing}
+      
+      records.each do |attributes|
+        attributes.stringify_keys!
+        if defaults = attributes.delete('defaults')
+          defaults.stringify_keys!
+        end
+        
+        id = attributes['id']
+        if existing_attributes = existing[id]
+          # Record exists: Update attributes
+          attributes.delete('id')
+          attributes.merge!(defaults.delete_if {|attribute, value| !existing_attributes[attribute].nil?}) if defaults
+          update_all(attributes, :id => id)
+        else
+          # Record doesn't exist: create new one
+          attributes.merge!(defaults) if defaults
+          column_names = []
+          values = []
+          
+          attributes.each do |column_name, value|
+            column_names << connection.quote_column_name(column_name)
+            values << connection.quote(value, columns_hash[column_name])
+          end
+          
+          connection.insert(
+            "INSERT INTO #{quoted_table_name} (#{column_names * ', '}) VALUES(#{values * ', '})",
+            "#{name} Create", primary_key, id, sequence_name
+          )
         end
       end
-      self.record_timestamps = original_record_timestamps
+      
+      true
     end
   end
   

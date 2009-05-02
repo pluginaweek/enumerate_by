@@ -324,27 +324,81 @@ class EnumerationBootstrappedWithDefaultsTest < ActiveRecord::TestCase
 end
 
 class EnumerationFastBootstrappedTest < ActiveRecord::TestCase
-  def test_should_not_run_validations
-    assert_raise(ActiveRecord::StatementInvalid) { Color.fast_bootstrap({:id => 1, :name => nil}) }
+  def setup
+    @result = Color.fast_bootstrap(
+      {:id => 1, :name => 'red'},
+      {:id => 2, :name => 'green'}
+    )
   end
   
-  def test_should_still_record_timestamps_after_bootstrap
-    Color.fast_bootstrap({:id => 1, :name => 'red'})
-    assert Color.record_timestamps
+  def test_should_not_raise_exception_if_id_not_specified
+    assert_nothing_raised { Color.fast_bootstrap({:name => 'red'}, {:name => 'green'}) }
+    assert_equal 2, Color.count
   end
   
-  def test_should_still_run_validations_after_bootstrap
-    Color.fast_bootstrap({:id => 1, :name => 'red'})
+  def test_should_raise_exception_if_query_fails
+    assert_raise(ActiveRecord::StatementInvalid) { Color.fast_bootstrap({:id => 1, :name => nil}, {:id => 2, :name => 'green'}) }
+  end
+  
+  def test_should_flatten_bootstrap_records
+    Color.bootstrap(
+      [{:id => 1, :name => 'red'}],
+      [{:id => 2, :name => 'green'}]
+    )
+    assert_equal 2, Color.count
+  end
+  
+  def test_should_create_records
+    assert @result
+    assert_not_nil Color.find_by_name('red')
+    assert_not_nil Color.find_by_name('green')
+  end
+end
+
+class EnumeratioFastBootstrappedWithExistingRecordsTest < ActiveRecord::TestCase
+  def setup
+    @red = create_color(:name => 'RED')
+    @green = create_color(:name => 'GREEN')
+  
+    Color.fast_bootstrap(
+      {:id => @red.id, :name => 'red'},
+      {:id => @green.id, :name => 'green'}
+    )
     
-    color = Color.new
-    assert !color.save
-    assert_raise(ActiveRecord::RecordInvalid) { color.save! }
+    @red.reload
+    @green.reload
   end
   
-  def test_should_still_track_changed_attributes_after_bootstrap
-    Color.fast_bootstrap({:id => 1, :name => 'red'})
+  def test_should_synchronize_all_attributes
+    assert_equal 'red', @red.name
+    assert_equal 'green', @green.name
+  end
+end
+
+class EnumerationFastBootstrappedWithDefaultsTest < ActiveRecord::TestCase
+  def setup
+    @red = create_color(:name => 'RED', :html => '#f00')
+    @green = create_color(:name => 'GREEN')
+  
+    Color.fast_bootstrap(
+      {:id => @red.id, :name => 'red', :defaults => {:html => '#ff0000'}},
+      {:id => @green.id, :name => 'green', :defaults => {:html => '#00ff00'}}
+    )
     
-    color = Color.new(:name => 'red')
-    assert color.changed?
+    @red.reload
+    @green.reload
+  end
+  
+  def test_should_update_all_non_default_attributes
+    assert_equal 'red', @red.name
+    assert_equal 'green', @green.name
+  end
+  
+  def test_should_not_update_default_attributes_if_defined
+    assert_equal '#f00', @red.html
+  end
+  
+  def test_should_update_default_attributes_if_not_defined
+    assert_equal '#00ff00', @green.html
   end
 end
