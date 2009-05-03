@@ -1,5 +1,7 @@
 == master
 
+== 0.4.2 / 2009-05-03
+
 * Fix bootstrapping without ids not working on update for certain database adapters
 
 == 0.4.1 / 2009-05-01
