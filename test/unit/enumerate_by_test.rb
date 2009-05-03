@@ -295,6 +295,25 @@ class EnumerationBootstrappedWithExistingRecordsTest < ActiveRecord::TestCase
   end
 end
 
+class EnumerationBootstrappedWithExistingDynamicRecordsTest < ActiveRecord::TestCase
+  def setup
+    create_color(:name => 'RED')
+    create_color(:name => 'GREEN')
+  
+    @red, @green = Color.bootstrap(
+      {:name => 'red'},
+      {:name => 'green'}
+    )
+  end
+  
+  def test_should_synchronize_all_attributes
+    assert_equal 2, Color.count
+    
+    assert_equal 'red', @red.name
+    assert_equal 'green', @green.name
+  end
+end
+
 class EnumerationBootstrappedWithDefaultsTest < ActiveRecord::TestCase
   def setup
     @red = create_color(:name => 'RED', :html => '#f00')
@@ -372,6 +391,25 @@ class EnumeratioFastBootstrappedWithExistingRecordsTest < ActiveRecord::TestCase
   def test_should_synchronize_all_attributes
     assert_equal 'red', @red.name
     assert_equal 'green', @green.name
+  end
+end
+
+class EnumerationFastBootstrappedWithExistingDynamicRecordsTest < ActiveRecord::TestCase
+  def setup
+    create_color(:name => 'RED')
+    create_color(:name => 'GREEN')
+  
+    Color.fast_bootstrap(
+      {:name => 'red'},
+      {:name => 'green'}
+    )
+  end
+  
+  def test_should_synchronize_all_attributes
+    assert_equal 2, Color.count
+    
+    assert Color.exists?(:name => 'red')
+    assert Color.exists?(:name => 'green')
   end
 end
 

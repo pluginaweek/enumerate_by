@@ -253,7 +253,10 @@ module EnumerateBy
       uncached do
         # Remove records that are no longer being used
         records.flatten!
-        delete_all(['id NOT IN (?)', records.map {|record| record[:id]}])
+        ids = records.map {|record| record[:id]}.compact
+        delete_all(ids.any? ? ['id NOT IN (?)', ids] : nil)
+        
+        # Find remaining existing records (to be updated)
         existing = all.inject({}) {|existing, record| existing[record.id] = record; existing}
         
         records.map! do |attributes|
@@ -302,7 +305,8 @@ module EnumerateBy
     def fast_bootstrap(*records)
       # Remove records that are no longer being used
       records.flatten!
-      delete_all(['id NOT IN (?)', records.map {|record| record[:id]}])
+      ids = records.map {|record| record[:id]}.compact
+      delete_all(ids.any? ? ['id NOT IN (?)', ids] : nil)
       
       # Find remaining existing records (to be updated)
       quoted_table_name = self.quoted_table_name
