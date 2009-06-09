@@ -66,15 +66,15 @@ module EnumerateBy
       end
       
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a WHERE clause.
-      def sanitize_sql_hash_for_conditions_with_enumerations(attrs)
+      def sanitize_sql_hash_for_conditions_with_enumerations(attrs, *args)
         replace_enumerations_in_hash(attrs)
-        sanitize_sql_hash_for_conditions_without_enumerations(attrs)
+        sanitize_sql_hash_for_conditions_without_enumerations(attrs, *args)
       end
       
       # Sanitizes a hash of attribute/value pairs into SQL conditions for a SET clause.
-      def sanitize_sql_hash_for_assignment_with_enumerations(attrs)
+      def sanitize_sql_hash_for_assignment_with_enumerations(attrs, *args)
         replace_enumerations_in_hash(attrs, false)
-        sanitize_sql_hash_for_assignment_without_enumerations(attrs)
+        sanitize_sql_hash_for_assignment_without_enumerations(attrs, *args)
       end
       
       # Make sure dynamic finders don't fail since it won't find the association
