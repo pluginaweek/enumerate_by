@@ -23,7 +23,12 @@ class ModelWithBelongsToAssociationTest < ActiveRecord::TestCase
   end
   
   def test_should_use_nil_if_enumeration_does_not_exist
-    @car.color = 'blue'
+    assert_nothing_raised { @car.color = 'blue' }
+    assert_nil @car.color
+  end
+  
+  def test_should_allow_nil
+    assert_nothing_raised { @car.color = nil }
     assert_nil @car.color
   end
   

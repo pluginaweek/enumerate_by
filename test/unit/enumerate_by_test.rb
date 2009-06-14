@@ -149,6 +149,10 @@ class EnumerationAfterBeingCreatedTest < ActiveRecord::TestCase
     assert 'red' == @red
   end
   
+  def test_should_allow_equality_with_nil
+    assert @red != nil
+  end
+  
   def test_should_raise_exception_on_quality_with_invalid_enumerator
     assert_raise(ActiveRecord::RecordNotFound) {@red == 'invalid'}
   end

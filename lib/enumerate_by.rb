@@ -350,7 +350,7 @@ module EnumerateBy
     # a String, then it is compared against the enumerator.  Otherwise,
     # ActiveRecord's default equality comparator is used.
     def ==(arg)
-      arg.is_a?(self.class) ? super : self == self.class.find_by_enumerator!(arg)
+      arg.nil? || arg.is_a?(self.class) ? super : self == self.class.find_by_enumerator!(arg)
     end
     
     # Determines whether this enumeration is in the given list.
