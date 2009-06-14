@@ -79,14 +79,14 @@ module EnumerateBy
           # Inclusion scopes
           %W(with_#{name} with_#{name.to_s.pluralize}).each do |scope_name|
             named_scope scope_name.to_sym, lambda {|*enumerators| {
-              :conditions => {primary_key_name => klass.find_all_by_enumerator!(enumerators).map(&:id)}
+              :conditions => {primary_key_name => klass.find_all_by_enumerator!(*enumerators).map(&:id)}
             }}
           end
           
           # Exclusion scopes
           %W(without_#{name} without_#{name.to_s.pluralize}).each do |scope_name|
             named_scope scope_name.to_sym, lambda {|*enumerators| {
-              :conditions => ["#{primary_key_name} NOT IN (?)", klass.find_all_by_enumerator!(enumerators).map(&:id)]
+              :conditions => ["#{primary_key_name} NOT IN (?)", klass.find_all_by_enumerator!(*enumerators).map(&:id)]
             }}
           end
           

@@ -167,6 +167,47 @@ class EnumerationAfterBeingCreatedTest < ActiveRecord::TestCase
   end
 end
 
+class EnumerationWithNumericEnumeratorAttributeTest < ActiveRecord::TestCase
+  def setup
+    @engine = create_car_part(:name => 'engine', :number => 111)
+    @radiator = create_car_part(:name => 'radiator', :number => 222)
+    @transmission = create_car_part(:name => 'transmission', :number => 333)
+  end
+  
+  def test_should_have_an_enumerator
+    assert_equal 111, @engine.enumerator
+  end
+  
+  def test_should_allow_equality_with_enumerator
+    assert @engine == 111
+  end
+  
+  def test_should_allow_equality_with_record
+    assert @engine == @engine
+  end
+  
+  def test_should_allow_equality_with_strings
+    assert '111' == @engine
+  end
+  
+  def test_should_raise_exception_on_quality_with_invalid_enumerator
+    assert_raise(ActiveRecord::RecordNotFound) {@engine == 123}
+  end
+  
+  def test_should_be_found_in_a_list_of_valid_names
+    assert @engine.in?(111)
+  end
+  
+  def test_should_not_be_found_in_a_list_of_invalid_names
+    assert !@engine.in?(222, 333)
+  end
+  
+  def test_should_stringify_enumerator
+    assert_equal '111', @engine.to_s
+    assert_equal '111', @engine.to_str
+  end
+end
+
 class EnumerationWithCachingTest < ActiveRecord::TestCase
   def setup
     @red = create_color(:name => 'red')

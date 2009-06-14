@@ -106,7 +106,7 @@ module EnumerateBy
             klass = reflection.klass
             attribute = reflection.primary_key_name
             id = if allow_multiple && enumerator.is_a?(Array)
-              enumerator.map {|enumerator| klass.find_by_enumerator!(enumerator).id}
+              klass.find_all_by_enumerator!(*enumerator).map(&:id)
             else
               klass.find_by_enumerator!(enumerator).id
             end

@@ -40,9 +40,22 @@ module Factory
     )
   end
   
+  build CarPart do |attributes|
+    attributes.reverse_merge!(
+      :number => 123321
+    )
+  end
+  
   build Color do |attributes|
     attributes.reverse_merge!(
       :name => 'red'
+    )
+  end
+  
+  build Order do |attributes|
+    attributes[:car_part] = create_car_part unless attributes.include?(:car_part)
+    attributes.reverse_merge!(
+      :state => 'pending'
     )
   end
 end

@@ -14,7 +14,21 @@ module EnumerateBy
         protected
           # Enumerator types are always strings
           def compute_type_with_enumerations
-            enumeration_association? ? :string : compute_type_without_enumerations
+            if enumeration_association?
+              klass = @record.class.reflections[name.to_sym].klass
+              type = klass.columns_hash[klass.enumerator_attribute.to_s].type
+              
+              case type
+                when :text
+                  :string
+                when :time
+                  :datetime
+                else
+                  type
+              end
+            else
+              compute_type_without_enumerations
+            end
           end
           
           # Gets the real value representing the enumerator

@@ -69,3 +69,23 @@ class XmlSerializerTest < ActiveRecord::TestCase
     assert_equal expected, @car.to_xml
   end
 end
+
+class XmlSerializerWithNumericEnumeratorAttributeTest < ActiveRecord::TestCase
+  def setup
+    @engine = create_car_part(:name => 'engine', :number => 123321)
+    @order = create_order(:state => 'pending', :car_part => @engine)
+  end
+  
+  def test_should_be_able_to_convert_to_xml
+    expected = <<-eos
+<?xml version="1.0" encoding="UTF-8"?>
+<order>
+  <car-part type="integer">123321</car-part>
+  <id type="integer">#{@order.id}</id>
+  <state>pending</state>
+</order>
+    eos
+    
+    assert_equal expected, @order.to_xml
+  end
+end

@@ -57,8 +57,7 @@ module EnumerateBy
     # == Associations
     # 
     # When using enumerations together with +belongs_to+ associations, the
-    # enumerator value can be used as a shortcut for assigning the
-    # association.
+    # enumerator value can be used as a shortcut for assigning the association.
     # 
     # In addition, the enumerator value is automatically used during
     # serialization (xml and json) of the associated record instead of the
@@ -150,8 +149,8 @@ module EnumerateBy
     # 
     #   Color.find_all_by_enumerator('red', 'green')  # => [#<Color id: 1, name: "red">, #<Color id: 1, name: "green">]
     #   Color.find_all_by_enumerator('invalid')       # => []
-    def find_all_by_enumerator(enumerators)
-      all(:conditions => {enumerator_attribute => enumerators})
+    def find_all_by_enumerator(*enumerators)
+      all(:conditions => {enumerator_attribute => enumerators.flatten})
     end
     
     # Finds records with the given enumerators.  If no record is found for a
@@ -164,9 +163,9 @@ module EnumerateBy
     #   Color.find_all_by_enumerator!('invalid')        # => ActiveRecord::RecordNotFound: Couldn't find Color with name(s) "invalid"
     # 
     # To avoid raising an exception on invalid enumerators, use +find_all_by_enumerator+.
-    def find_all_by_enumerator!(enumerators)
+    def find_all_by_enumerator!(*enumerators)
       records = find_all_by_enumerator(enumerators)
-      missing = [enumerators].flatten - records.map(&:enumerator)
+      missing = enumerators.flatten - records.map(&:enumerator)
       missing.empty? ? records : raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute}(s) #{missing.map(&:inspect).to_sentence}")
     end
     
@@ -295,8 +294,8 @@ module EnumerateBy
     # * Dirty attributes
     # 
     # Also note that records are created directly without creating instances
-    # of the model.  As a result, all of the attributes for the record must
-    # be specified.
+    # of the model.  As a result, all of the attributes for the record must be
+    # specified.
     # 
     # This produces a significant performance increase when bootstrapping more
     # than several hundred records.
@@ -351,7 +350,7 @@ module EnumerateBy
     # a String, then it is compared against the enumerator.  Otherwise,
     # ActiveRecord's default equality comparator is used.
     def ==(arg)
-      arg.is_a?(String) ? self == self.class.find_by_enumerator!(arg) : super
+      arg.is_a?(self.class) ? super : self == self.class.find_by_enumerator!(arg)
     end
     
     # Determines whether this enumeration is in the given list.
