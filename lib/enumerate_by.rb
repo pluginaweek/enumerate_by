@@ -177,9 +177,9 @@ module EnumerateBy
     [:find_by_sql, :exists?, :calculate].each do |method|
       define_method(method) do |*args|
         if EnumerateBy.perform_caching && perform_enumerator_caching
-          enumerator_cache_store.fetch([method] + args) { super }
+          enumerator_cache_store.fetch([method] + args) { super(*args) }
         else
-          super
+          super(*args)
         end
       end
     end
