@@ -147,10 +147,10 @@ module EnumerateBy
     # 
     # For example,
     # 
-    #   Color.find_all_by_enumerator('red', 'green')  # => [#<Color id: 1, name: "red">, #<Color id: 1, name: "green">]
-    #   Color.find_all_by_enumerator('invalid')       # => []
-    def find_all_by_enumerator(*enumerators)
-      all(:conditions => {enumerator_attribute => enumerators.flatten})
+    #   Color.find_all_by_enumerator(['red', 'green'])  # => [#<Color id: 1, name: "red">, #<Color id: 1, name: "green">]
+    #   Color.find_all_by_enumerator('invalid')         # => []
+    def find_all_by_enumerator(enumerators)
+      all(:conditions => {enumerator_attribute => enumerators})
     end
     
     # Finds records with the given enumerators.  If no record is found for a
@@ -159,13 +159,13 @@ module EnumerateBy
     # 
     # For Example,
     # 
-    #   Color.find_all_by_enumerator!('red', 'green')   # => [#<Color id: 1, name: "red">, #<Color id: 1, name: "green">]
+    #   Color.find_all_by_enumerator!(['red', 'green']) # => [#<Color id: 1, name: "red">, #<Color id: 1, name: "green">]
     #   Color.find_all_by_enumerator!('invalid')        # => ActiveRecord::RecordNotFound: Couldn't find Color with name(s) "invalid"
     # 
     # To avoid raising an exception on invalid enumerators, use +find_all_by_enumerator+.
-    def find_all_by_enumerator!(*enumerators)
+    def find_all_by_enumerator!(enumerators)
       records = find_all_by_enumerator(enumerators)
-      missing = enumerators.flatten - records.map(&:enumerator)
+      missing = [enumerators].flatten - records.map(&:enumerator)
       missing.empty? ? records : raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute}(s) #{missing.map(&:inspect).to_sentence}")
     end
     

@@ -1,7 +1,6 @@
 == master
 
 * Fix incompatibility with Ruby 1.9
-* Fix #find_all_by_enumerator / #find_all_by_enumerator! not allowing multiple arguments
 * Fix equality / xml serialization not working for non-string enumerators
 * Improve compatibility with the stable branch of Rails 2.3 [Michael Schuerig]
 
