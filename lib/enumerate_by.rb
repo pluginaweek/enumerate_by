@@ -125,7 +125,7 @@ module EnumerateBy
     #   Color.find_by_enumerator('red')     # => #<Color id: 1, name: "red">
     #   Color.find_by_enumerator('invalid') # => nil
     def find_by_enumerator(enumerator)
-      first(:conditions => {enumerator_attribute => enumerator})
+      first(:conditions => {enumerator_attribute => typecast_enumerator(enumerator)})
     end
     
     # Finds the record that is associated with the given enumerator.  If no
@@ -139,7 +139,7 @@ module EnumerateBy
     # 
     # To avoid raising an exception on invalid enumerators, use +find_by_enumerator+.
     def find_by_enumerator!(enumerator)
-      find_by_enumerator(enumerator) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute} #{enumerator.inspect}")
+      find_by_enumerator(enumerator) || raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute} #{typecast_enumerator(enumerator).inspect}")
     end
     alias_method :[], :find_by_enumerator!
     
@@ -150,7 +150,7 @@ module EnumerateBy
     #   Color.find_all_by_enumerator(['red', 'green'])  # => [#<Color id: 1, name: "red">, #<Color id: 1, name: "green">]
     #   Color.find_all_by_enumerator('invalid')         # => []
     def find_all_by_enumerator(enumerators)
-      all(:conditions => {enumerator_attribute => enumerators})
+      all(:conditions => {enumerator_attribute => typecast_enumerator(enumerators)})
     end
     
     # Finds records with the given enumerators.  If no record is found for a
@@ -164,8 +164,9 @@ module EnumerateBy
     # 
     # To avoid raising an exception on invalid enumerators, use +find_all_by_enumerator+.
     def find_all_by_enumerator!(enumerators)
+      enumerators = [enumerators].flatten
       records = find_all_by_enumerator(enumerators)
-      missing = [enumerators].flatten - records.map(&:enumerator)
+      missing = enumerators - records.map(&:enumerator)
       missing.empty? ? records : raise(ActiveRecord::RecordNotFound, "Couldn't find #{name} with #{enumerator_attribute}(s) #{missing.map(&:inspect).to_sentence}")
     end
     
@@ -194,6 +195,20 @@ module EnumerateBy
     ensure
       self.perform_enumerator_caching = old
     end
+    
+    private
+      # Typecasts the given enumerator to its actual value stored in the
+      # database.  This will only convert symbols to strings.  All other values
+      # will remain in the same type.
+      def typecast_enumerator(enumerator)
+        if enumerator.is_a?(Array)
+          enumerator.flatten!
+          enumerator.map! {|value| typecast_enumerator(value)}
+          enumerator
+        else
+          enumerator.is_a?(Symbol) ? enumerator.to_s : enumerator
+        end
+      end
   end
   
   module Bootstrapped

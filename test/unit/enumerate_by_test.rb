@@ -129,6 +129,56 @@ class EnumerationWithRecordsTest < ActiveRecord::TestCase
   end
 end
 
+class EnumerationWithSymbolReferencesTest < ActiveRecord::TestCase
+  def setup
+    @red = create_color(:name => 'red')
+    @green = create_color(:name => 'green')
+  end
+  
+  def test_should_index_by_enumerator
+    assert_equal @red, Color[:red]
+  end
+  
+  def test_should_allow_finding_by_enumerator
+    assert_equal @red, Color.find_by_enumerator(:red)
+  end
+  
+  def test_should_allow_finding_by_enumerator_with_nil
+    assert_nil Color.find_by_enumerator(nil)
+  end
+  
+  def test_should_find_nothing_if_finding_by_unknown_enumerator
+    assert_nil Color.find_by_enumerator(:invalid)
+  end
+  
+  def test_should_raise_exception_for_invalid_index
+    exception = assert_raise(ActiveRecord::RecordNotFound) {Color[:white]}
+    assert_equal "Couldn't find Color with name \"white\"", exception.message
+  end
+  
+  def test_should_allow_finding_all_by_enumerator
+    assert_equal [@red, @green], Color.find_all_by_enumerator([:red, :green])
+  end
+  
+  def test_should_allow_finding_all_by_enumerator_with_nil
+    assert_equal [], Color.find_all_by_enumerator(nil)
+  end
+  
+  def test_should_find_nothing_if_finding_all_by_unknown_enumerator
+    assert_equal [], Color.find_all_by_enumerator(:invalid)
+  end
+  
+  def test_should_raise_exception_find_finding_all_by_unknown_enumerator!
+    exception = assert_raise(ActiveRecord::RecordNotFound) { Color.find_all_by_enumerator!(:invalid) }
+    assert_equal "Couldn't find Color with name(s) \"invalid\"", exception.message
+  end
+  
+  def test_should_raise_exception_if_only_some_found_when_finding_all_by_enumerator!
+    exception = assert_raise(ActiveRecord::RecordNotFound) { Color.find_all_by_enumerator!([:red, :invalid]) }
+    assert_equal "Couldn't find Color with name(s) \"invalid\"", exception.message
+  end
+end
+
 class EnumerationAfterBeingCreatedTest < ActiveRecord::TestCase
   def setup
     @red = create_color(:name => 'red')
@@ -142,6 +192,10 @@ class EnumerationAfterBeingCreatedTest < ActiveRecord::TestCase
   
   def test_should_allow_equality_with_enumerator
     assert @red == 'red'
+  end
+  
+  def test_should_allow_equality_with_symbol_enumerator
+    assert @red == :red
   end
   
   def test_should_allow_equality_with_record
@@ -162,6 +216,10 @@ class EnumerationAfterBeingCreatedTest < ActiveRecord::TestCase
   
   def test_should_be_found_in_a_list_of_valid_names
     assert @red.in?('red')
+  end
+  
+  def test_should_be_found_in_a_list_of_valid_symbol_names
+    assert @red.in?(:red)
   end
   
   def test_should_not_be_found_in_a_list_of_invalid_names
