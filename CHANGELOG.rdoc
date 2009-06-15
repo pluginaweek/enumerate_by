@@ -1,5 +1,7 @@
 == master
 
+== 0.4.3 / 2009-06-14
+
 * Add support for looking up enumerators by their symbol equivalent
 * Fix incompatibility with Ruby 1.9
 * Fix equality / xml serialization not working for non-string enumerators
