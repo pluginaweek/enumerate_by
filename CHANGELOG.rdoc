@@ -1,5 +1,6 @@
 == master
 
+* Fix tests failing on Rails 2.3.3+
 * Release gems via rake-gemcutter instead of rubyforge
 
 == 0.4.3 / 2009-06-14
