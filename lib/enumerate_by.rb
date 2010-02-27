@@ -17,7 +17,11 @@ module EnumerateBy
         # Tracks which associations are backed by an enumeration
         # {"foreign key" => "association name"}
         class_inheritable_accessor :enumeration_associations
-        self.enumeration_associations = {}
+        
+        # Fix existing models not getting the default value
+        ([self] + subclasses).each do |model|
+          model.enumeration_associations = {}
+        end
       end
     end
     

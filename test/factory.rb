@@ -63,4 +63,10 @@ module Factory
       :state => 'pending'
     )
   end
+  
+  build Tag do |attributes|
+    attributes.reverse_merge!(
+      :name => 'rails'
+    )
+  end
 end

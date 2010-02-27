@@ -90,3 +90,21 @@ class XmlSerializerWithNumericEnumeratorAttributeTest < ActiveRecord::TestCase
     assert_equal expected, @order.to_xml
   end
 end
+
+class XMLSerializerForPluginModelTest < ActiveRecord::TestCase
+  def setup
+    @tag = create_tag(:name => 'rails')
+  end
+  
+  def test_should_serialize
+    expected = <<-eos
+<?xml version="1.0" encoding="UTF-8"?>
+<tag>
+  <id type="integer">#{@tag.id}</id>
+  <name>rails</name>
+</tag>
+    eos
+    
+    assert_equal expected, @tag.to_xml
+  end
+end

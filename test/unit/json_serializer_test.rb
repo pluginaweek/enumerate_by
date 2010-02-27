@@ -16,3 +16,13 @@ class JSONSerializerTest < ActiveRecord::TestCase
     assert_match %r{"name":\s*"Ford Mustang"}, @json
   end
 end
+
+class JSONSerializerForPluginModelTest < ActiveRecord::TestCase
+  def setup
+    @tag = create_tag(:name => 'rails')
+  end
+  
+  def test_should_serialize
+    assert_match %r{"name":\s*"rails"}, @tag.to_json
+  end
+end
