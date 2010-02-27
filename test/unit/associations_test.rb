@@ -17,7 +17,7 @@ class ModelWithBelongsToAssociationTest < ActiveRecord::TestCase
     assert_equal @green, @car.color
   end
   
-  def test_should_find_assocation_from_record
+  def test_should_find_association_from_record
     @car.color = @green
     assert_equal @green, @car.color
   end
