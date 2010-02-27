@@ -178,7 +178,7 @@ module EnumerateBy
     [:find_by_sql, :exists?, :calculate].each do |method|
       define_method(method) do |*args|
         if EnumerateBy.perform_caching && perform_enumerator_caching
-          enumerator_cache_store.fetch([method] + args) { super(*args) }
+          shallow_clone(enumerator_cache_store.fetch([method] + args) { super(*args) })
         else
           super(*args)
         end
@@ -207,6 +207,16 @@ module EnumerateBy
           enumerator
         else
           enumerator.is_a?(Symbol) ? enumerator.to_s : enumerator
+        end
+      end
+      
+      # Generates a copy of the given record(s), keeping intact the original id
+      def shallow_clone(result)
+        case result
+        when Array
+          result.map {|item| shallow_clone(item)}
+        when ActiveRecord::Base
+          result.class.send(:instantiate, result.instance_variable_get(:@attributes))
         end
       end
   end

@@ -284,6 +284,14 @@ class EnumerationWithCachingTest < ActiveRecord::TestCase
     assert Color.perform_enumerator_caching
   end
   
+  def test_should_not_return_same_objects
+    assert_not_same Color.find(@red.id), Color.find(@red.id)
+  end
+  
+  def test_should_not_return_same_collections
+    assert_not_same Color.find_all_by_id(@red.id), Color.find_all_by_id(@red.id)
+  end
+  
   def test_should_cache_all_finder_queries
    assert_queries(1) { Color.find(@red.id) }
    assert_queries(0) { Color.find(@red.id) }
@@ -310,6 +318,7 @@ class EnumerationWithCachingTest < ActiveRecord::TestCase
   end
   
   def teardown
+    Color.enumerator_cache_store.clear
     EnumerateBy.perform_caching = false
   end
 end
@@ -344,6 +353,33 @@ class EnumerationWithoutCachingTest < ActiveRecord::TestCase
   def teardown
     EnumerateBy.perform_caching = false
     Color.perform_enumerator_caching = @original_perform_caching
+  end
+end
+
+class EnumerationWithAssociationsTest < ActiveRecord::TestCase
+  def setup
+    EnumerateBy.perform_caching = true
+    
+    @red = create_color(:name => 'red')
+    @blue = create_color(:name => 'blue')
+    @red_car = create_car(:name => 'Ford Mustang', :color => @red)
+    @blue_car = create_car(:name => 'Ford Mustang', :color => @blue)
+  end
+  
+  def test_should_find_associated_records
+    assert_equal [@red_car], Color['red'].cars
+  end
+  
+  def test_should_not_cache_association_on_subsequent_usage
+    assert_equal [@red_car], Color['red'].cars
+    
+    @second_red_car = create_car(:name => 'Ford Mustang', :color => @red)
+    assert_equal [@red_car, @second_red_car], Color['red'].cars
+  end
+  
+  def teardown
+    Color.enumerator_cache_store.clear
+    EnumerateBy.perform_caching = false
   end
 end
 

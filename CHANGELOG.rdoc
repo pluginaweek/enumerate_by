@@ -1,5 +1,6 @@
 == master
 
+* Fix cached enumeration records not being isolated from in- or cross-process modifications
 * Respect custom primary_key configurations in ActiveRecord models [Martin Honermeyer]
 * Fix tests failing on Rails 2.3.3+
 * Release gems via rake-gemcutter instead of rubyforge
