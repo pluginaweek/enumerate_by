@@ -38,7 +38,7 @@ associations.  The important thing to remember, however, is that while the
 associations exist, the enumerator is always used outside of the application,
 while either the enumerator or the enumerator's record would be referenced
 *within* the application.  This means that you would reference a Color record
-via it's enumerator (such as "red") everywhere in the code (conditions,
+via its enumerator (such as "red") everywhere in the code (conditions,
 assigning associations, forms, etc.), but it would always be stored in the
 database as a true association with the integer value of 1.
 
@@ -75,9 +75,9 @@ database as a true association with the integer value of 1.
 
 Each of the above models is backed by the database with its own table.  Both
 the Color and ColorGroup enumerations automatically synchronize with the
-records in the database based on what's define in their bootstrap data.
+records in the database based on what's defined in their bootstrap data.
 
-The enumerations and their associations can be then be used like so:
+The enumerations and their associations can then be used like so:
 
   car = Car.create(:color => 'red')   # => #<Car id: 1, color_id: 1>
   car.color                           # => #<Color id: 1, name: "red">
