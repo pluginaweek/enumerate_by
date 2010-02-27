@@ -104,11 +104,12 @@ module EnumerateBy
         def enumerator_options_for(name, enumerator, allow_multiple = true)
           if reflection = reflect_on_enumeration(name)
             klass = reflection.klass
+            klass_primary_key = klass.primary_key.to_sym
             attribute = reflection.primary_key_name
             id = if allow_multiple && enumerator.is_a?(Array)
-              klass.find_all_by_enumerator!(enumerator).map(&:id)
+              klass.find_all_by_enumerator!(enumerator).map(&klass_primary_key)
             else
-              klass.find_by_enumerator!(enumerator).id
+              klass.find_by_enumerator!(enumerator).send(klass_primary_key)
             end
             
             {attribute => id}

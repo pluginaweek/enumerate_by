@@ -34,7 +34,6 @@ module Factory
   end
   
   build Car do |attributes|
-    attributes[:color] = create_color unless attributes.include?(:color)
     attributes.reverse_merge!(
       :name => 'Ford Mustang'
     )
@@ -47,6 +46,12 @@ module Factory
   end
   
   build Color do |attributes|
+    attributes.reverse_merge!(
+      :name => 'red'
+    )
+  end
+  
+  build LegacyColor do |attributes|
     attributes.reverse_merge!(
       :name => 'red'
     )

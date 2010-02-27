@@ -448,6 +448,28 @@ class EnumerationBootstrappedWithDefaultsTest < ActiveRecord::TestCase
   end
 end
 
+class EnumerationWithCustomPrimaryKeyBootstrappedTest < ActiveRecord::TestCase
+  def setup
+    @red, @green = LegacyColor.bootstrap(
+      {:uid => 1, :name => 'red'},
+      {:uid => 2, :name => 'green'}
+    )
+  end
+  
+  def test_should_not_raise_exception_if_primary_key_not_specified
+    assert_nothing_raised { LegacyColor.bootstrap({:name => 'red'}, {:name => 'green'}) }
+    assert_equal 2, LegacyColor.count
+  end
+  
+  def test_should_create_records
+    assert_equal @red, LegacyColor.find(1)
+    assert_equal 'red', @red.name
+    
+    assert_equal @green, LegacyColor.find(2)
+    assert_equal 'green', @green.name
+  end
+end
+
 class EnumerationFastBootstrappedTest < ActiveRecord::TestCase
   def setup
     @result = Color.fast_bootstrap(
@@ -544,5 +566,25 @@ class EnumerationFastBootstrappedWithDefaultsTest < ActiveRecord::TestCase
   
   def test_should_update_default_attributes_if_not_defined
     assert_equal '#00ff00', @green.html
+  end
+end
+
+class EnumerationWithCustomPrimaryKeyFastBootstrappedTest < ActiveRecord::TestCase
+  def setup
+    @result = LegacyColor.fast_bootstrap(
+      {:uid => 1, :name => 'red'},
+      {:uid => 2, :name => 'green'}
+    )
+  end
+  
+  def test_should_not_raise_exception_if_primary_key_not_specified
+    assert_nothing_raised { LegacyColor.fast_bootstrap({:name => 'red'}, {:name => 'green'}) }
+    assert_equal 2, LegacyColor.count
+  end
+  
+  def test_should_create_records
+    assert @result
+    assert_not_nil LegacyColor.find_by_name('red')
+    assert_not_nil LegacyColor.find_by_name('green')
   end
 end

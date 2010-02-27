@@ -8,7 +8,7 @@ class SerializerByDefaultTest < ActiveRecord::TestCase
   end
   
   def test_should_include_enumerations_in_serializable_attribute_names
-    assert_equal %w(color feature_id feature_type id name), @serializer.serializable_attribute_names
+    assert_equal %w(color feature_id feature_type id legacy_color name), @serializer.serializable_attribute_names
   end
   
   def test_should_typecast_serializable_record
@@ -16,6 +16,7 @@ class SerializerByDefaultTest < ActiveRecord::TestCase
       'color' => 'red',
       'feature_id' => nil,
       'feature_type' => nil,
+      'legacy_color' => nil,
       'id' => @car.id,
       'name' => 'Ford Mustang'
     }
@@ -32,7 +33,7 @@ class SerializerWithoutEnumerationsTest < ActiveRecord::TestCase
   end
   
   def test_should_not_include_enumerations_in_serializable_attribute_names
-    assert_equal %w(color_id feature_id feature_type id name), @serializer.serializable_attribute_names
+    assert_equal %w(color_id feature_id feature_type id legacy_color_id name), @serializer.serializable_attribute_names
   end
   
   def test_should_not_typecast_serializable_record
@@ -40,6 +41,7 @@ class SerializerWithoutEnumerationsTest < ActiveRecord::TestCase
       'color_id' => @red.id,
       'feature_id' => nil,
       'feature_type' => nil,
+      'legacy_color_id' => nil,
       'id' => @car.id,
       'name' => 'Ford Mustang'
     }
@@ -98,13 +100,14 @@ class SerializerWithExceptEnumerationAttributeTest < ActiveRecord::TestCase
   end
   
   def test_should_not_include_enumeration_in_serializable_attribute_names
-    assert_equal %w(feature_id feature_type id name), @serializer.serializable_attribute_names
+    assert_equal %w(feature_id feature_type id legacy_color name), @serializer.serializable_attribute_names
   end
   
   def test_should_not_include_enumeration_in_serializable_record
     expected = {
       'feature_id' => nil,
       'feature_type' => nil,
+      'legacy_color' => nil,
       'id' => @car.id,
       'name' => 'Ford Mustang'
     }
@@ -121,13 +124,14 @@ class SerializerWithExceptEnumerationAssociationTest < ActiveRecord::TestCase
   end
   
   def test_should_not_include_enumeration_in_serializable_attribute_names
-    assert_equal %w(feature_id feature_type id name), @serializer.serializable_attribute_names
+    assert_equal %w(feature_id feature_type id legacy_color name), @serializer.serializable_attribute_names
   end
   
   def test_should_not_include_enumeration_in_serializable_record
     expected = {
       'feature_id' => nil,
       'feature_type' => nil,
+      'legacy_color' => nil,
       'id' => @car.id,
       'name' => 'Ford Mustang'
     }
@@ -144,7 +148,7 @@ class SerializerWithIncludeEnumerationTest < ActiveRecord::TestCase
   end
   
   def test_should_not_include_enumeration_in_serializable_attribute_names
-    assert_equal %w(color_id feature_id feature_type id name), @serializer.serializable_attribute_names
+    assert_equal %w(color_id feature_id feature_type id legacy_color name), @serializer.serializable_attribute_names
   end
   
   def test_should_include_entire_enumeration_in_serializable_record
@@ -157,6 +161,7 @@ class SerializerWithIncludeEnumerationTest < ActiveRecord::TestCase
       'color_id' => @red.id,
       'feature_id' => nil,
       'feature_type' => nil,
+      'legacy_color' => nil,
       'id' => @car.id,
       'name' => 'Ford Mustang'
     }

@@ -33,7 +33,7 @@ class ModelWithBelongsToAssociationTest < ActiveRecord::TestCase
   end
   
   def test_should_track_associations
-    expected = {'color_id' => 'color'}
+    expected = {'color_id' => 'color', 'legacy_color_id' => 'legacy_color'}
     assert_equal expected, Car.enumeration_associations
   end
 end
@@ -71,5 +71,32 @@ class ModelWithPolymorphicBelongsToAssociationTest < ActiveRecord::TestCase
     assert !Car.respond_to?(:with_features)
     assert !Car.respond_to?(:without_feature)
     assert !Car.respond_to?(:without_features)
+  end
+end
+
+class ModelWithEnumerationScopesUsingCustomPrimaryKeyTest < ActiveRecord::TestCase
+  def setup
+    @red = create_legacy_color(:name => 'red')
+    @blue = create_legacy_color(:name => 'blue')
+    @red_car = create_car(:name => 'Ford Mustang', :legacy_color => @red)
+    @blue_car = create_car(:name => 'Ford Mustang', :legacy_color => @blue)
+  end
+  
+  def test_should_have_inclusion_scope_for_single_enumerator
+    assert_equal [@red_car], Car.with_legacy_color('red')
+    assert_equal [@blue_car], Car.with_legacy_color('blue')
+  end
+  
+  def test_should_have_inclusion_scope_for_multiple_enumerators
+    assert_equal [@red_car, @blue_car], Car.with_legacy_color('red', 'blue')
+  end
+  
+  def test_should_have_exclusion_scope_for_single_enumerator
+    assert_equal [@blue_car], Car.without_legacy_color('red')
+    assert_equal [@red_car], Car.without_legacy_color('blue')
+  end
+  
+  def test_should_have_exclusion_scope_for_multiple_enumerators
+    assert_equal [], Car.without_legacy_colors('red', 'blue')
   end
 end

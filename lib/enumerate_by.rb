@@ -265,13 +265,15 @@ module EnumerateBy
     # Otherwise, any changes to that column remain there.
     def bootstrap(*records)
       uncached do
+        primary_key = self.primary_key.to_sym
+        
         # Remove records that are no longer being used
         records.flatten!
-        ids = records.map {|record| record[:id]}.compact
-        delete_all(ids.any? ? ['id NOT IN (?)', ids] : nil)
+        ids = records.map {|record| record[primary_key]}.compact
+        delete_all(ids.any? ? ["#{primary_key} NOT IN (?)", ids] : nil)
         
         # Find remaining existing records (to be updated)
-        existing = all.inject({}) {|existing, record| existing[record.id] = record; existing}
+        existing = all.inject({}) {|existing, record| existing[record.send(primary_key)] = record; existing}
         
         records.map! do |attributes|
           attributes.symbolize_keys!
@@ -279,7 +281,7 @@ module EnumerateBy
           
           # Update with new attributes
           record =
-            if record = existing[attributes[:id]]
+            if record = existing[attributes[primary_key]]
               attributes.merge!(defaults.delete_if {|attribute, value| record.send("#{attribute}?")}) if defaults
               record.attributes = attributes
               record
@@ -287,7 +289,7 @@ module EnumerateBy
               attributes.merge!(defaults) if defaults
               new(attributes)
             end
-          record.id = attributes[:id]
+          record.send("#{primary_key}=", attributes[primary_key])
           
           # Force failed saves to stop execution
           record.save!
@@ -317,14 +319,16 @@ module EnumerateBy
     # 
     # See EnumerateBy::Bootstrapped#bootstrap for information about usage.
     def fast_bootstrap(*records)
+      primary_key = self.primary_key.to_sym
+      
       # Remove records that are no longer being used
       records.flatten!
-      ids = records.map {|record| record[:id]}.compact
-      delete_all(ids.any? ? ['id NOT IN (?)', ids] : nil)
+      ids = records.map {|record| record[primary_key]}.compact
+      delete_all(ids.any? ? ["#{primary_key} NOT IN (?)", ids] : nil)
       
       # Find remaining existing records (to be updated)
       quoted_table_name = self.quoted_table_name
-      existing = connection.select_all("SELECT * FROM #{quoted_table_name}").inject({}) {|existing, record| existing[record['id'].to_i] = record; existing}
+      existing = connection.select_all("SELECT * FROM #{quoted_table_name}").inject({}) {|existing, record| existing[record[primary_key.to_s].to_i] = record; existing}
       
       records.each do |attributes|
         attributes.stringify_keys!
@@ -332,12 +336,12 @@ module EnumerateBy
           defaults.stringify_keys!
         end
         
-        id = attributes['id']
+        id = attributes[primary_key.to_s]
         if existing_attributes = existing[id]
           # Record exists: Update attributes
-          attributes.delete('id')
+          attributes.delete(primary_key.to_s)
           attributes.merge!(defaults.delete_if {|attribute, value| !existing_attributes[attribute].nil?}) if defaults
-          update_all(attributes, :id => id)
+          update_all(attributes, primary_key => id)
         else
           # Record doesn't exist: create new one
           attributes.merge!(defaults) if defaults

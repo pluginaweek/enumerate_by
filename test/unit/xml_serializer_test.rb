@@ -62,6 +62,7 @@ class XmlSerializerTest < ActiveRecord::TestCase
   <feature-id type="integer" nil="true"></feature-id>
   <feature-type nil="true"></feature-type>
   <id type="integer">#{@car.id}</id>
+  <legacy-color nil="true"></legacy-color>
   <name>Ford Mustang</name>
 </car>
     eos
