@@ -1,5 +1,7 @@
 == master
 
+* Release gems via rake-gemcutter instead of rubyforge
+
 == 0.4.3 / 2009-06-14
 
 * Add support for looking up enumerators by their symbol equivalent
