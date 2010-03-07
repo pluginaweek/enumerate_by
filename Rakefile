@@ -6,7 +6,7 @@ require 'rake/gempackagetask'
 
 spec = Gem::Specification.new do |s|
   s.name              = 'enumerate_by'
-  s.version           = '0.4.3'
+  s.version           = '0.4.4'
   s.platform          = Gem::Platform::RUBY
   s.summary           = 'Adds support for declaring an ActiveRecord class as an enumeration'
   s.description       = s.summary

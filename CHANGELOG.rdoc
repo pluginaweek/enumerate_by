@@ -1,5 +1,7 @@
 == master
 
+== 0.4.4 / 2010-03-07
+
 * Fix serialization failing when ActiveRecord models have been defined prior to this plugin being loaded
 * Fix cached enumeration records not being isolated from external modifications that don't sweep the cache
 * Respect custom primary_key configurations in ActiveRecord models [Martin Honermeyer]
