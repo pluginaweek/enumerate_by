@@ -7,7 +7,7 @@ enumeration.
 
 API
 
-* http://api.pluginaweek.org/enumerate_by
+* http://rdoc.info/projects/pluginaweek/enumerate_by
 
 Bugs
 
