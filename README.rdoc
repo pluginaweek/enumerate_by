@@ -7,7 +7,7 @@ enumeration.
 
 API
 
-* http://rdoc.info/projects/pluginaweek/enumerate_by
+* http://rdoc.info/github/pluginaweek/enumerate_by/master/frames
 
 Bugs
 
