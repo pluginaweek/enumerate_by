@@ -11,7 +11,7 @@ API
 
 Bugs
 
-* http://pluginaweek.lighthouseapp.com/projects/13265-enumerate_by
+* http://github.com/pluginaweek/enumerate_by/issues
 
 Development
 
@@ -20,6 +20,10 @@ Development
 Source
 
 * git://github.com/pluginaweek/enumerate_by.git
+
+Mailing List
+
+* http://groups.google.com/group/pluginaweek-talk
 
 == Description
 
