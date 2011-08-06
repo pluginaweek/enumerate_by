@@ -1,4 +1,4 @@
-= enumerate_by
+= enumerate_by http://travis-ci.org/pluginaweek/enumerate_by.png
 
 +enumerate_by+ adds support for declaring an ActiveRecord class as an
 enumeration.
@@ -16,6 +16,10 @@ Bugs
 Development
 
 * http://github.com/pluginaweek/enumerate_by
+
+Testing
+
+* http://travis-ci.org/pluginaweek/enumerate_by
 
 Source
 
